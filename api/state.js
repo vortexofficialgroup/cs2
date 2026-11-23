@@ -1,6 +1,6 @@
 // api/state.js — GET / PUT shared portal state
 const handler = require('../lib/http');
-const { requireAdmin, requirePermission } = require('../lib/auth');
+const { requireAdmin, requirePermission, getUser } = require('../lib/auth');
 
 const SECTIONS = {
   rooms: { keys: ['rm', 'ro', 'rp', 'rooms'], permission: 'rooms' },
@@ -61,10 +61,15 @@ module.exports = handler({
     const rows = await response.json();
     res.setHeader('Cache-Control', 'no-store');
     if (!rows.length && req.query.since) return res.json({ notModified: true });
-    res.json({
-      state: rows.length ? rows[0].data : null,
-      updatedAt: rows.length ? rows[0].updated_at : null,
-    });
+    const state = rows.length ? rows[0].data : null;
+    const updatedAt = rows.length ? rows[0].updated_at : null;
+
+    // Public portal only needs operational data. Admin settings stay admin-only.
+    const user = getUser(req, null, { silent: true });
+    if (user && user.role === 'admin') return res.json({ state, updatedAt });
+    const publicState = state && typeof state === 'object' ? { ...state } : null;
+    if (publicState && Object.prototype.hasOwnProperty.call(publicState, 'ps')) delete publicState.ps;
+    return res.json({ state: publicState, updatedAt });
   },
 
   async PUT(req, res) {

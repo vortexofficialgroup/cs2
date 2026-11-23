@@ -337,7 +337,7 @@ function updateClock(){
 }
 
 function effProf(s){return activeOverride(s)||s.professor;}
-function effProfHtml(s){const o=activeOverride(s);return o?`<span style="color:#2563EB;font-weight:600">${o}</span> <span style="font-size:10px;color:var(--txt-muted)">(sub)</span>`:s.professor;}
+function effProfHtml(s){const o=activeOverride(s);return o?`<span style="color:#2563EB;font-weight:600">${esc(o)}</span> <span style="font-size:10px;color:var(--txt-muted)">(sub)</span>`:esc(s.professor);}
 function csProgramCat(p){
   const s=String(p||'').toLowerCase().trim();
   if(!s)return '';
@@ -358,6 +358,8 @@ function csCanSeeEntry(e){
   return sc===ec;
 }
 function csSchedule(){return SCHEDULE.filter(csCanSeeEntry);}
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function escAttr(s){return esc(s).replace(/`/g,'&#96;');}
 
 // ══════════════════════════════════════════════════
 // ANNOUNCEMENTS
@@ -369,10 +371,10 @@ function renderAnnouncements(){
   wrap.innerHTML=active.map(a=>`
     <div class="announce-wrap" style="padding:0 20px">
       <div style="max-width:1260px;margin:0 auto">
-        <div class="announce-bar ${a.type}" id="ab-${a.id}">
+        <div class="announce-bar ${esc(a.type)}" id="ab-${esc(a.id)}">
           <i class="fa-solid ${a.type==='urgent'?'fa-triangle-exclamation':a.type==='warning'?'fa-clock-rotate-left':a.type==='exam'?'fa-file-pen':'fa-circle-info'}"></i>
-          <span><span class="a-title">${a.title}:</span> <span class="a-msg">${a.msg}</span></span>
-          <span class="announce-close" onclick="document.getElementById('ab-${a.id}').closest('.announce-wrap').remove()"><i class="fa-solid fa-xmark"></i></span>
+          <span><span class="a-title">${esc(a.title)}:</span> <span class="a-msg">${esc(a.msg)}</span></span>
+          <span class="announce-close" onclick="this.closest('.announce-wrap').remove()"><i class="fa-solid fa-xmark"></i></span>
         </div>
       </div>
     </div>`).join('');
@@ -695,7 +697,7 @@ function renderRoomPhotos(id){
   if(_rpId!==id){_rpId=id;_rpIdx=0;}
   if(!ph.length){box.innerHTML='';return;}
   _rpIdx=(_rpIdx+ph.length)%ph.length;
-  box.innerHTML=`<div class="rp-gallery"><img src="${ph[_rpIdx]}" alt="Room ${id} photo" onclick="openRoomPhoto()">${ph.length>1?`<button class="rp-nav prev" onclick="rpStep(-1)"><i class="fa-solid fa-chevron-left"></i></button><button class="rp-nav next" onclick="rpStep(1)"><i class="fa-solid fa-chevron-right"></i></button><span class="rp-count">${_rpIdx+1} / ${ph.length}</span>`:''}</div>`;
+  box.innerHTML=`<div class="rp-gallery"><img src="${escAttr(ph[_rpIdx])}" alt="Room ${escAttr(id)} photo" onclick="openRoomPhoto()">${ph.length>1?`<button class="rp-nav prev" onclick="rpStep(-1)"><i class="fa-solid fa-chevron-left"></i></button><button class="rp-nav next" onclick="rpStep(1)"><i class="fa-solid fa-chevron-right"></i></button><span class="rp-count">${_rpIdx+1} / ${ph.length}</span>`:''}</div>`;
 }
 function rpStep(d){_rpIdx+=d;renderRoomPhotos(_rpId);}
 function openRoomPhoto(){const ph=ROOM_PHOTOS[_rpId]||[];document.getElementById('rp-lb-img').src=ph[_rpIdx];document.getElementById('rp-lb').classList.add('open');}
@@ -706,9 +708,9 @@ function openRoom(id){
   const st=roomStatus(id,today,min);
   document.getElementById('m-rid').textContent=`ROOM ${room.id}`;
   document.getElementById('m-rname').textContent=room.name;
-  const feats=(room.features||[]).map(f=>`<span class="m-badge"><i class="fa-solid fa-check" style="font-size:9px;color:var(--green)"></i>${f}</span>`).join('');
+  const feats=(room.features||[]).map(f=>`<span class="m-badge"><i class="fa-solid fa-check" style="font-size:9px;color:var(--green)"></i>${esc(f)}</span>`).join('');
   const mw=room.mergeWith?getRoom(room.mergeWith):null;
-  document.getElementById('m-badges').innerHTML=`<span class="m-badge"><i class="fa-solid fa-chalkboard"></i>${room.type}</span>${room.capacity?`<span class="m-badge"><i class="fa-solid fa-chair"></i>${room.capacity} chairs</span>`:''}${mw?`<span class="m-badge"><i class="fa-solid fa-arrows-left-right"></i>Opens into ${mw.id} · ${room.capacity+mw.capacity} chairs combined</span>`:''}${feats}`;
+  document.getElementById('m-badges').innerHTML=`<span class="m-badge"><i class="fa-solid fa-chalkboard"></i>${esc(room.type)}</span>${room.capacity?`<span class="m-badge"><i class="fa-solid fa-chair"></i>${esc(room.capacity)} chairs</span>`:''}${mw?`<span class="m-badge"><i class="fa-solid fa-arrows-left-right"></i>Opens into ${esc(mw.id)} · ${esc((room.capacity||0)+(mw.capacity||0))} chairs combined</span>`:''}${feats}`;
   const sb=document.getElementById('m-status');
   if(st.status==='staff'){
     sb.className='m-status occ';
@@ -728,11 +730,11 @@ function openRoom(id){
   } else if(st.status==='occ'){
     const e=st.entry,rem=t2m(e.end)-min;
     sb.className='m-status occ';
-    sb.innerHTML=`<div class="st-title"><i class="fa-solid fa-circle-xmark"></i> In Session · ends in ${rem} min</div><div class="info-grid"><div class="info-row"><div class="i-lbl">Course</div><div class="i-val">${e.course}</div></div><div class="info-row"><div class="i-lbl">Code</div><div class="i-val">${e.code}</div></div><div class="info-row"><div class="i-lbl">Professor</div><div class="i-val">${effProfHtml(e)}</div></div><div class="info-row"><div class="i-lbl">Time</div><div class="i-val">${fmtT(e.start)} – ${fmtT(e.end)}</div></div><div class="info-row" style="grid-column:span 2"><div class="i-lbl">Program</div><div class="i-val">${e.program}</div></div></div>`;
+    sb.innerHTML=`<div class="st-title"><i class="fa-solid fa-circle-xmark"></i> In Session · ends in ${rem} min</div><div class="info-grid"><div class="info-row"><div class="i-lbl">Course</div><div class="i-val">${esc(e.course)}</div></div><div class="info-row"><div class="i-lbl">Code</div><div class="i-val">${esc(e.code)}</div></div><div class="info-row"><div class="i-lbl">Professor</div><div class="i-val">${effProfHtml(e)}</div></div><div class="info-row"><div class="i-lbl">Time</div><div class="i-val">${fmtT(e.start)} – ${fmtT(e.end)}</div></div><div class="info-row" style="grid-column:span 2"><div class="i-lbl">Program</div><div class="i-val">${esc(e.program)}</div></div></div>`;
   } else if(st.status==='soon'){
     const e=st.entry,diff=t2m(e.start)-min;
     sb.className='m-status soon';
-    sb.innerHTML=`<div class="st-title"><i class="fa-solid fa-clock"></i> Starting in ${diff} minutes</div><div class="info-grid"><div class="info-row"><div class="i-lbl">Course</div><div class="i-val">${e.course}</div></div><div class="info-row"><div class="i-lbl">Code</div><div class="i-val">${e.code}</div></div><div class="info-row"><div class="i-lbl">Professor</div><div class="i-val">${effProfHtml(e)}</div></div><div class="info-row"><div class="i-lbl">Starts At</div><div class="i-val">${fmtT(e.start)}</div></div></div>`;
+    sb.innerHTML=`<div class="st-title"><i class="fa-solid fa-clock"></i> Starting in ${diff} minutes</div><div class="info-grid"><div class="info-row"><div class="i-lbl">Course</div><div class="i-val">${esc(e.course)}</div></div><div class="info-row"><div class="i-lbl">Code</div><div class="i-val">${esc(e.code)}</div></div><div class="info-row"><div class="i-lbl">Professor</div><div class="i-val">${effProfHtml(e)}</div></div><div class="info-row"><div class="i-lbl">Starts At</div><div class="i-val">${fmtT(e.start)}</div></div></div>`;
   } else {
     sb.className='m-status free';
     sb.innerHTML=`<div class="st-title"><i class="fa-solid fa-circle-check"></i> Free Now — available to use</div>`;
@@ -740,14 +742,14 @@ function openRoom(id){
   const nxtEntry=sched.filter(s=>s.roomId===id&&s.day===today&&t2m(s.start)>min).sort((a,b)=>t2m(a.start)-t2m(b.start))[0];
   const ne=document.getElementById('m-next');
   ne.style.display='';
-  ne.innerHTML=nxtEntry?`<div class="m-next-lbl">Next class today:</div><div>${fmtT(nxtEntry.start)} · <strong>${nxtEntry.code}</strong> · ${effProfHtml(nxtEntry)}</div>`:'<div style="color:var(--txt-muted);font-size:12px">No more classes today in this room</div>';
+  ne.innerHTML=nxtEntry?`<div class="m-next-lbl">Next class today:</div><div>${fmtT(nxtEntry.start)} · <strong>${esc(nxtEntry.code)}</strong> · ${effProfHtml(nxtEntry)}</div>`:'<div style="color:var(--txt-muted);font-size:12px">No more classes today in this room</div>';
   const todays=sched.filter(s=>s.roomId===id&&s.day===today).sort((a,b)=>t2m(a.start)-t2m(b.start));
   const ms=document.getElementById('m-sched');
   ms.innerHTML=todays.length===0?'<div style="color:var(--txt-muted);font-size:12.5px;padding:4px 0">No classes scheduled today</div>'
-    :todays.map(e=>{const isNow=t2m(e.start)<=min&&t2m(e.end)>min;return`<div class="m-srow"><div class="ms-day">${fmtT(e.start)}</div><div class="ms-time">– ${fmtT(e.end)}</div><div class="ms-course">${e.code}: ${e.course}</div>${isNow?'<div class="ms-now">NOW</div>':''}</div>`;}).join('');
+    :todays.map(e=>{const isNow=t2m(e.start)<=min&&t2m(e.end)>min;return`<div class="m-srow"><div class="ms-day">${fmtT(e.start)}</div><div class="ms-time">– ${fmtT(e.end)}</div><div class="ms-course">${esc(e.code)}: ${esc(e.course)}</div>${isNow?'<div class="ms-now">NOW</div>':''}</div>`;}).join('');
   const weekly=sched.filter(s=>s.roomId===id&&s.day!==today).sort((a,b)=>a.day-b.day||t2m(a.start)-t2m(b.start));
   const wt=document.getElementById('m-week-title'),ws=document.getElementById('m-week-sched');
-  if(weekly.length>0){wt.style.display='';ws.innerHTML=weekly.map(e=>`<div class="m-srow"><div class="ms-day">${DAY_SHORT[e.day]}</div><div class="ms-time">${fmtT(e.start)}–${fmtT(e.end)}</div><div class="ms-course">${e.code}: ${e.course}</div></div>`).join('');}
+  if(weekly.length>0){wt.style.display='';ws.innerHTML=weekly.map(e=>`<div class="m-srow"><div class="ms-day">${DAY_SHORT[e.day]}</div><div class="ms-time">${fmtT(e.start)}–${fmtT(e.end)}</div><div class="ms-course">${esc(e.code)}: ${esc(e.course)}</div></div>`).join('');}
   else{wt.style.display='none';ws.innerHTML='';}
   const hs=!!(room.restricted||room.publicSpace);
   ['m-next','m-sched'].forEach(k=>document.getElementById(k).style.display=hs?'none':'');
@@ -769,16 +771,16 @@ function renderCourseSearch(){
   const grouped={};
   matches.forEach(s=>{if(!grouped[s.code])grouped[s.code]={code:s.code,course:s.course,professor:effProfHtml(s),program:s.program,entries:[]};grouped[s.code].entries.push(s);});
   const courses=Object.values(grouped);
-  if(!courses.length){cont.innerHTML=`<div class="empty-state"><i class="fa-solid fa-face-frown-open"></i>No courses match "<strong>${q}</strong>"</div>`;return;}
+  if(!courses.length){cont.innerHTML=`<div class="empty-state"><i class="fa-solid fa-face-frown-open"></i>No courses match "<strong>${esc(q)}</strong>"</div>`;return;}
   cont.innerHTML=`<div class="res-count">${courses.length} course${courses.length>1?'s':''} found</div>`+
     courses.map(c=>{
       const nowE=c.entries.find(e=>e.day===today&&t2m(e.start)<=min&&t2m(e.end)>min);
       const rows=c.entries.sort((a,b)=>a.day-b.day||t2m(a.start)-t2m(b.start)).map(e=>{
         const isNow=e.day===today&&t2m(e.start)<=min&&t2m(e.end)>min;
         const isToday=e.day===today&&t2m(e.start)>min;
-        return`<div class="crc-row" onclick="openRoom('${e.roomId}')"><div class="crc-day">${DAY_SHORT[e.day]}</div><div class="crc-time">${fmtT(e.start)} – ${fmtT(e.end)}</div><div class="crc-room">${e.roomId} · ${getRoom(e.roomId)?.name||''}</div>${isNow?'<div class="crc-st now">In Session</div>':''}${isToday&&!isNow?'<div class="crc-st today">Later Today</div>':''}</div>`;
+        return`<div class="crc-row" onclick="openRoom('${escAttr(e.roomId)}')"><div class="crc-day">${DAY_SHORT[e.day]}</div><div class="crc-time">${fmtT(e.start)} – ${fmtT(e.end)}</div><div class="crc-room">${esc(e.roomId)} · ${esc(getRoom(e.roomId)?.name||'')}</div>${isNow?'<div class="crc-st now">In Session</div>':''}${isToday&&!isNow?'<div class="crc-st today">Later Today</div>':''}</div>`;
       }).join('');
-      return`<div class="crc"><div class="crc-hdr"><div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="code-pill">${c.code}</span>${nowE?'<span class="live-badge"><i class="fa-solid fa-circle" style="font-size:7px"></i> LIVE NOW</span>':''}</div><div class="crc-name">${c.course}</div><div class="crc-prof"><i class="fa-solid fa-chalkboard-user" style="font-size:11px"></i> ${c.professor} · ${c.program}</div></div>${nowE?`<div style="text-align:right;font-size:12px;color:var(--red);font-weight:700">${nowE.roomId}<div style="font-size:11px;color:var(--txt-muted)">${fmtT(nowE.start)}–${fmtT(nowE.end)}</div></div>`:''}</div><div class="crc-sched">${rows}</div></div>`;
+      return`<div class="crc"><div class="crc-hdr"><div><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="code-pill">${esc(c.code)}</span>${nowE?'<span class="live-badge"><i class="fa-solid fa-circle" style="font-size:7px"></i> LIVE NOW</span>':''}</div><div class="crc-name">${esc(c.course)}</div><div class="crc-prof"><i class="fa-solid fa-chalkboard-user" style="font-size:11px"></i> ${c.professor} · ${esc(c.program)}</div></div>${nowE?`<div style="text-align:right;font-size:12px;color:var(--red);font-weight:700">${esc(nowE.roomId)}<div style="font-size:11px;color:var(--txt-muted)">${fmtT(nowE.start)}–${fmtT(nowE.end)}</div></div>`:''}</div><div class="crc-sched">${rows}</div></div>`;
     }).join('');
 }
 
@@ -834,10 +836,10 @@ function renderClass(){
   sb.className=`m-status ${cls}`;
   sb.innerHTML=`<div class="st-title" style="margin-bottom:${prog!==null?8:2}px"><i class="fa-solid ${icon}"></i> ${title}</div><div style="font-size:12.5px;color:var(--txt-muted)">${sub}</div>${prog!==null?`<div class="c-prog"><div style="width:${Math.round(prog*100)}%"></div></div>`:''}`;
   document.getElementById('c-grid').innerHTML=`
-    <div class="c-cell big"><div class="i-lbl">Room number</div><div class="i-val">${room.id}</div></div>
-    <div class="c-cell big"><div class="i-lbl">Chairs</div><div class="i-val">${room.capacity||'–'}</div></div>
+    <div class="c-cell big"><div class="i-lbl">Room number</div><div class="i-val">${esc(room.id)}</div></div>
+    <div class="c-cell big"><div class="i-lbl">Chairs</div><div class="i-val">${esc(room.capacity||'–')}</div></div>
     <div class="c-cell wide"><div class="i-lbl">Professor</div><div class="i-val">${effProfHtml(e)}</div></div>
-    <div class="c-cell wide"><div class="i-lbl">Program</div><div class="i-val">${e.program}</div></div>`;
+    <div class="c-cell wide"><div class="i-lbl">Program</div><div class="i-val">${esc(e.program)}</div></div>`;
   document.getElementById('c-room-btn').onclick=()=>{closeClass(null,true);openRoom(e.roomId);};
 }
 
@@ -1267,23 +1269,26 @@ async function cbSend() {
 const CS_TOKEN_KEY='campusyncerStudentToken';
 let csStudent=null, csMsClient=null, csAccountUser=null, csAccountPhotoData='';
 function csWait(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
-function csStoreToken(token,remember){
-  localStorage.removeItem(CS_TOKEN_KEY);
-  sessionStorage.removeItem(CS_TOKEN_KEY);
-  (remember?localStorage:sessionStorage).setItem(CS_TOKEN_KEY,token);
-}
-function csSavedToken(){return localStorage.getItem(CS_TOKEN_KEY)||sessionStorage.getItem(CS_TOKEN_KEY);}
-function csClearToken(){localStorage.removeItem(CS_TOKEN_KEY);sessionStorage.removeItem(CS_TOKEN_KEY);csStudent=null;csAccountUser=null;}
+function csClearLegacyToken(){localStorage.removeItem(CS_TOKEN_KEY);sessionStorage.removeItem(CS_TOKEN_KEY);}
+async function csClearStudentSession(){csClearLegacyToken();csStudent=null;if(csAccountUser&&csAccountUser.role==='student')csAccountUser=null;try{await csFetch('/api/student/logout',{method:'DELETE'});}catch{}}
 function csStudentRemember(){
   const login=document.getElementById('cs-remember');
   const signup=document.getElementById('cs-signup-remember');
   return !!(login&&login.checked||signup&&signup.checked);
 }
 async function csFetch(path,options){
-  const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...(options&&options.headers||{})}});
-  const data=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(data.error||`Request failed (${response.status})`);
-  return data;
+  // Never let a slow backend keep the splash on screen forever.
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),6000);
+  try{
+    const response=await fetch(path,{credentials:'same-origin',...options,signal:controller.signal,headers:{'Content-Type':'application/json',...(options&&options.headers||{})}});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.error||`Request failed (${response.status})`);
+    return data;
+  }catch(err){
+    if(err.name==='AbortError')throw new Error('The server took too long to respond. Please try again.');
+    throw err;
+  }finally{clearTimeout(timer);}
 }
 function csError(id,message){
   const box=document.getElementById(id);
@@ -1322,15 +1327,11 @@ async function csUnlock(name){
   showToast(name?`Welcome, ${name}!`:'Welcome back!');
 }
 async function csCheckSession(){
-  const token=csSavedToken();
-  if(token){
-    try{
-      const data=await csFetch('/api/student/me',{headers:{'x-student-token':token}});
-      csStudent=data.user;
-      csAccountUser=data.user;
-      return true;
-    }catch{csClearToken();}
-  }
+  csClearLegacyToken();
+  try{
+    const data=await csFetch('/api/student/me');
+    if(data.user){csStudent=data.user;csAccountUser=data.user;return true;}
+  }catch{}
   try{
     const data=await csFetch('/api/auth/session');
     if(data.user&&['admin','staff'].includes(data.user.role)){
@@ -1385,19 +1386,19 @@ async function csHandleMicrosoftReturn(){
     if(flow==='student'){
       const program=sessionStorage.getItem('csMsProgram')||'';
       sessionStorage.removeItem('csMsProgram');
-      const result=await csFetch('/api/student/microsoft',{method:'POST',body:JSON.stringify({accessToken,program})});
-      csStoreToken(result.token,csStudentRemember());
+      const result=await csFetch('/api/student/microsoft',{method:'POST',body:JSON.stringify({accessToken,program,remember:csStudentRemember()})});
+      csClearLegacyToken();
       csStudent=result.user;
       csAccountUser=result.user;
       await csUnlock(result.user.name);
       return true;
     }
-    const result=await csFetch('/api/auth/microsoft',{method:'POST',body:JSON.stringify({accessToken})});
+    await csFetch('/api/auth/microsoft',{method:'POST',body:JSON.stringify({accessToken})});
     const session=await csFetch('/api/auth/session');
     if(!session.user||!['admin','staff'].includes(session.user.role))throw new Error('Staff sign-in failed. Please try again.');
-    csClearToken();
+    await csClearStudentSession();
     csAccountUser=session.user;
-    await csUnlock(session.user.displayName||result.user.displayName||session.user.username);
+    await csUnlock(session.user.displayName||session.user.username);
     return true;
   }catch(err){
     csError(errorBox,err.message);
@@ -1410,19 +1411,37 @@ async function csBoot(){
     return;
   }
   document.body.classList.add('cs-locked');
-  await csLoadMicrosoftConfig();
   const seen=sessionStorage.getItem('csSeen')==='1';
-  await Promise.all([window.csDataReady||Promise.resolve(),csWait(seen?450:1200)]);
-  // Decide while the splash is still visible so there is never a blank screen.
-  if(await csHandleMicrosoftReturn())return;
-  if(await csCheckSession()){
-    await csUnlock(csStudent&&csStudent.name);
-    return;
+  let unlocked=false;
+  try{
+    // Data loading and Microsoft config must never block the login screen.
+    await Promise.race([csLoadMicrosoftConfig(),csWait(2500)]);
+    await Promise.race([window.csDataReady||Promise.resolve(),csWait(seen?450:1200)]);
+    // Decide while the splash is still visible so there is never a blank screen.
+    if(await csHandleMicrosoftReturn()){unlocked=true;return;}
+    if(await csCheckSession()){
+      unlocked=true;
+      await csUnlock(csStudent&&csStudent.name);
+      return;
+    }
+  }catch(err){
+    console.error('[startup]',err);
+  }finally{
+    if(!unlocked){
+      document.getElementById('cs-gate').style.display='flex';
+      sessionStorage.setItem('csSeen','1');
+      await csHideSplash();
+    }
   }
-  document.getElementById('cs-gate').style.display='flex';
-  sessionStorage.setItem('csSeen','1');
-  await csHideSplash();
 }
+// Last-resort watchdog: even an unexpected startup error cannot trap the user
+// behind the splash screen.
+setTimeout(()=>{
+  if(!document.body.classList.contains('cs-locked'))return;
+  const gate=document.getElementById('cs-gate'),splash=document.getElementById('cs-splash');
+  if(gate&&gate.style.display!=='flex')gate.style.display='flex';
+  if(splash&&splash.style.display!=='none')csHideSplash();
+},9000);
 async function csStudentLogin(){
   csClearErrors();
   const btn=document.getElementById('cs-login-btn');btn.disabled=true;
@@ -1430,8 +1449,9 @@ async function csStudentLogin(){
     const data=await csFetch('/api/student/login',{method:'POST',body:JSON.stringify({
       email:document.getElementById('cs-email').value.trim(),
       password:document.getElementById('cs-password').value,
+      remember:csStudentRemember(),
     })});
-    csStoreToken(data.token,csStudentRemember());
+    csClearLegacyToken();
     csStudent=data.user;
     csAccountUser=data.user;
     await csUnlock(data.user.name);
@@ -1447,8 +1467,8 @@ async function csStudentRegister(){
   if(name.length<2||!email||password.length<8||!program){csError('cs-student-error','Enter your name, email, program, and a password with at least 8 characters.');return;}
   const btn=document.getElementById('cs-signup-btn');btn.disabled=true;
   try{
-    const data=await csFetch('/api/student/register',{method:'POST',body:JSON.stringify({name,email,password,program})});
-    csStoreToken(data.token,csStudentRemember());
+    const data=await csFetch('/api/student/register',{method:'POST',body:JSON.stringify({name,email,password,program,remember:csStudentRemember()})});
+    csClearLegacyToken();
     csStudent=data.user;
     csAccountUser=data.user;
     await csUnlock(data.user.name);
@@ -1466,7 +1486,7 @@ async function csStaffLogin(){
     })});
     const session=await csFetch('/api/auth/session');
     if(!session.user||!['admin','staff'].includes(session.user.role))throw new Error('Staff sign-in failed. Please try again.');
-    csClearToken();
+    await csClearStudentSession();
     csAccountUser=session.user;
     await csUnlock(session.user.displayName||session.user.username);
   }catch(err){csError('cs-staff-error',err.message);}
@@ -1548,12 +1568,11 @@ async function csSaveAccount(){
     if(isStudent)payload.program=document.getElementById('cs-account-program').value;
     const data=await csFetch(isStudent?'/api/student/account':'/api/auth/account',{
       method:'PUT',
-      headers:isStudent?{'x-student-token':csSavedToken()||''}:{},
       body:JSON.stringify(payload),
     });
     if(isStudent){
+      csClearLegacyToken();
       csStudent=data.user;csAccountUser=data.user;
-      if(data.token)csStoreToken(data.token,csStudentRemember());
     }else{
       csAccountUser=data.user;
     }
@@ -1564,10 +1583,12 @@ async function csSaveAccount(){
 }
 async function csLogout(){
   csCloseAccount();
-  if(csAccountUser&&csAccountUser.role!=='student'){
+  if(csAccountUser&&csAccountUser.role==='student'){
+    await csClearStudentSession();
+  } else {
     try{await csFetch('/api/admin/logout',{method:'POST'});}catch{}
+    csClearLegacyToken();csStudent=null;csAccountUser=null;
   }
-  csClearToken();
   location.reload();
 }
 ['cs-password','cs-signup-password','cs-staff-pass'].forEach(id=>{

@@ -25,6 +25,7 @@ const ROUTES = {
   'PUT /api/auth/account':            require('../lib/routes/auth/account'),
   'POST /api/auth/microsoft':         require('../lib/routes/auth/microsoft'),
   'GET /api/student/me':              require('../lib/routes/student/auth'),
+  'DELETE /api/student/logout':       require('../lib/routes/student/auth'),
   'PUT /api/student/account':         require('../lib/routes/student/account'),
   'POST /api/student/login':          require('../lib/routes/student/auth'),
   'POST /api/student/register':       require('../lib/routes/student/auth'),
