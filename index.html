@@ -756,5 +756,362 @@ async function init(){
 }
 init();
 </script>
+
+<!-- ═══ CAMPUSYNCER CHATBOT ═══ -->
+<style>
+/* Chatbot FAB */
+.cb-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px #7c3aed66;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: transform .2s, box-shadow .2s;
+}
+.cb-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px #7c3aed88; }
+.cb-fab img  { width: 28px; height: 28px; object-fit: contain; border-radius: 4px; }
+.cb-fab-badge {
+  position: absolute;
+  top: -2px; right: -2px;
+  width: 14px; height: 14px;
+  background: #22c55e;
+  border-radius: 50%;
+  border: 2px solid var(--bg, #0d1117);
+}
+
+/* Chat window */
+.cb-window {
+  position: fixed;
+  bottom: 92px;
+  right: 24px;
+  width: 360px;
+  max-height: 520px;
+  background: var(--card, #161b22);
+  border: 1px solid var(--line, #30363d);
+  border-radius: 18px;
+  box-shadow: 0 12px 48px #00000066;
+  display: flex;
+  flex-direction: column;
+  z-index: 9998;
+  overflow: hidden;
+  transform: scale(.92) translateY(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .2s, opacity .2s;
+}
+.cb-window.open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Header */
+.cb-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #1a0a3e, #0f172a);
+  flex-shrink: 0;
+}
+.cb-logo {
+  width: 32px; height: 32px;
+  background: #fff;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.cb-logo img { width: 26px; height: 26px; object-fit: contain; }
+.cb-header-info { flex: 1; }
+.cb-title   { font-size: 13.5px; font-weight: 700; color: #fff; }
+.cb-sub     { font-size: 11px; color: #a78bfa; display: flex; align-items: center; gap: 4px; margin-top: 1px; }
+.cb-online  { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; }
+.cb-close   { background: none; border: none; color: #a78bfa; cursor: pointer; font-size: 16px; padding: 2px; }
+.cb-close:hover { color: #fff; }
+
+/* Messages */
+.cb-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cb-msg { display: flex; }
+.cb-msg--bot  { justify-content: flex-start; }
+.cb-msg--user { justify-content: flex-end; }
+.cb-bubble {
+  max-width: 82%;
+  padding: 9px 13px;
+  border-radius: 13px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.cb-msg--bot  .cb-bubble {
+  background: var(--bg, #0d1117);
+  border: 1px solid var(--line, #30363d);
+  color: var(--txt, #e6edf3);
+  border-bottom-left-radius: 3px;
+}
+.cb-msg--user .cb-bubble {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  border-bottom-right-radius: 3px;
+}
+
+/* Quick chips */
+.cb-chips {
+  padding: 0 14px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.cb-chip {
+  background: var(--bg, #0d1117);
+  border: 1px solid var(--line, #30363d);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--txt-muted, #8b949e);
+  cursor: pointer;
+  transition: all .15s;
+}
+.cb-chip:hover { border-color: #7c3aed; color: #a78bfa; }
+
+/* Typing */
+.cb-typing { display: flex; gap: 4px; padding: 9px 13px; align-items: center; }
+.cb-typing span {
+  width: 5px; height: 5px;
+  background: #7c3aed;
+  border-radius: 50%;
+  animation: cbBounce .9s infinite;
+}
+.cb-typing span:nth-child(2) { animation-delay: .15s; }
+.cb-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes cbBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+
+/* Input */
+.cb-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line, #30363d);
+  flex-shrink: 0;
+}
+.cb-input {
+  flex: 1;
+  background: var(--bg, #0d1117);
+  border: 1px solid var(--line, #30363d);
+  border-radius: 9px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--txt, #e6edf3);
+  outline: none;
+  font-family: inherit;
+}
+.cb-input:focus { border-color: #7c3aed; }
+.cb-send {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  border: none;
+  border-radius: 9px;
+  color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: opacity .15s;
+}
+.cb-send:hover { opacity: .85; }
+.cb-send:disabled { opacity: .4; cursor: wait; }
+
+@media (max-width: 420px) {
+  .cb-window { width: calc(100vw - 24px); right: 12px; bottom: 80px; }
+  .cb-fab    { right: 12px; bottom: 12px; }
+}
+</style>
+
+<!-- FAB button -->
+<button class="cb-fab" onclick="cbToggle()" aria-label="Open CampuSyncer chat">
+  <img src="https://onlinecampus.ue-germany.de/gfx/ue/logo.svg" alt="UE">
+  <div class="cb-fab-badge"></div>
+</button>
+
+<!-- Chat window -->
+<div class="cb-window" id="cb-window">
+  <div class="cb-header">
+    <div class="cb-logo">
+      <img src="https://onlinecampus.ue-germany.de/gfx/ue/logo.svg" alt="UE Dubai">
+    </div>
+    <div class="cb-header-info">
+      <div class="cb-title">CampuSyncer</div>
+      <div class="cb-sub"><span class="cb-online"></span> UE Dubai · Room Assistant</div>
+    </div>
+    <button class="cb-close" onclick="cbToggle()" aria-label="Close">✕</button>
+  </div>
+
+  <div class="cb-messages" id="cb-messages">
+    <div class="cb-msg cb-msg--bot">
+      <div class="cb-bubble">Hi! I'm CampuSyncer, your UE Dubai room assistant 👋
+
+Ask me about room availability, your schedule, or anything about the campus.</div>
+    </div>
+  </div>
+
+  <div class="cb-chips" id="cb-chips">
+    <button class="cb-chip" onclick="cbChip(this)">Which rooms are free now?</button>
+    <button class="cb-chip" onclick="cbChip(this)">Show Monday schedule</button>
+    <button class="cb-chip" onclick="cbChip(this)">Find a lab for 20 people</button>
+    <button class="cb-chip" onclick="cbChip(this)">What's in R101 today?</button>
+  </div>
+
+  <div class="cb-input-row">
+    <input id="cb-input" class="cb-input" type="text"
+      placeholder="Ask about rooms or schedule…"
+      onkeydown="if(event.key==='Enter')cbSend()" />
+    <button class="cb-send" id="cb-send-btn" onclick="cbSend()">
+      <i class="fa-solid fa-paper-plane"></i>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── Chatbot logic ──
+let cbOpen    = false;
+let cbHistory = [];
+
+function cbToggle() {
+  cbOpen = !cbOpen;
+  document.getElementById('cb-window').classList.toggle('open', cbOpen);
+  if (cbOpen) document.getElementById('cb-input').focus();
+}
+
+function cbChip(el) {
+  document.getElementById('cb-input').value = el.textContent.trim();
+  // Hide chips after first use
+  document.getElementById('cb-chips').style.display = 'none';
+  cbSend();
+}
+
+function cbAppend(role, text) {
+  const msgs = document.getElementById('cb-messages');
+  const div  = document.createElement('div');
+  div.className = `cb-msg cb-msg--${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'cb-bubble';
+  bubble.textContent = text;
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function cbTyping() {
+  const msgs = document.getElementById('cb-messages');
+  const div  = document.createElement('div');
+  div.className = 'cb-msg cb-msg--bot';
+  div.id = 'cb-typing';
+  div.innerHTML = '<div class="cb-typing"><span></span><span></span><span></span></div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function cbRemoveTyping() {
+  const el = document.getElementById('cb-typing');
+  if (el) el.remove();
+}
+
+async function cbSend() {
+  const input = document.getElementById('cb-input');
+  const btn   = document.getElementById('cb-send-btn');
+  const msg   = input.value.trim();
+  if (!msg) return;
+
+  input.value = '';
+  btn.disabled = true;
+  document.getElementById('cb-chips').style.display = 'none';
+
+  cbAppend('user', msg);
+  cbHistory.push({ role: 'user', content: msg });
+  cbTyping();
+
+  try {
+    // Build schedule context from page data
+    const scheduleCtx = typeof SCHEDULE !== 'undefined'
+      ? SCHEDULE.slice(0, 80).map(s =>
+          `day${s.day} ${s.start}-${s.end} room:${s.roomId} "${s.course}" prof:${s.professor} program:${s.program}`
+        ).join('\n')
+      : 'Schedule data not available.';
+
+    const roomCtx = typeof ROOMS !== 'undefined'
+      ? ROOMS.map(r => `${r.id}: ${r.name}, ${r.type}, cap ${r.capacity}${r.maintenance ? ' [MAINTENANCE]' : ''}`).join('\n')
+      : 'Room data not available.';
+
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0=Sun
+    const currentDay = dayOfWeek === 0 || dayOfWeek === 6 ? null : dayOfWeek;
+    const currentTime = now.toTimeString().slice(0,5);
+
+    const r = await fetch('/api/ai/suggest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: msg,
+        _chatbot_mode: true,
+        _context: {
+          currentDay,
+          currentTime,
+          schedule: scheduleCtx,
+          rooms: roomCtx,
+        }
+      }),
+    });
+
+    cbRemoveTyping();
+    const data = await r.json();
+
+    if (!r.ok || data.error) {
+      cbAppend('bot', data.error || 'Something went wrong. Try again!');
+      return;
+    }
+
+    // Format the response nicely
+    let reply = data.understood || '';
+
+    if (data.suggestions && data.suggestions.length > 0) {
+      const days = ['','Monday','Tuesday','Wednesday','Thursday','Friday'];
+      reply += (reply ? '\n\n' : '') + 'Available slots:\n' +
+        data.suggestions.map(s =>
+          `• ${s.room_name} (${s.room_id}) — ${days[s.day]} ${s.start}–${s.end}\n  ${s.reason}`
+        ).join('\n\n');
+    } else if (!reply) {
+      reply = "I couldn't find matching slots. Try rephrasing or ask about a specific day.";
+    }
+
+    if (data.tips) reply += `\n\n💡 ${data.tips}`;
+
+    cbAppend('bot', reply);
+    cbHistory.push({ role: 'assistant', content: reply });
+
+  } catch (e) {
+    cbRemoveTyping();
+    cbAppend('bot', 'Connection error. Please try again.');
+  } finally {
+    btn.disabled = false;
+    input.focus();
+  }
+}
+</script>
 </body>
 </html>

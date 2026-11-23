@@ -27,21 +27,30 @@ module.exports = handler({
       `${s.roomId} day${s.day} ${s.start}-${s.end}: ${s.course} (${s.code})`
     ).join('\n');
 
-    const system = `You are a smart campus scheduling assistant for UE Dubai.
-You receive a natural language room request and return slot suggestions in JSON.
-Rooms available:\n${roomCtx}
+        // Check if this is a chatbot general question (not just room search)
+    const chatCtx = req.body._context || null;
+    const isChatbot = req.body._chatbot_mode === true;
 
-Current bookings (day 1=Mon … 5=Fri):\n${schedCtx || 'No bookings yet.'}
+    const system = `You are CampuSyncer, the AI assistant for UE Dubai campus room portal.
+${isChatbot ? `You answer general questions about rooms and schedules as well as find available slots.
+Current day index: ${chatCtx?.currentDay || 'unknown'} (1=Mon…5=Fri), Current time: ${chatCtx?.currentTime || 'unknown'}
+` : ''}
+Rooms available:
+${roomCtx}
+
+Current bookings (day 1=Mon … 5=Fri):
+${schedCtx || 'No bookings yet.'}
 
 Rules:
 - Working hours: 08:00–20:00
 - Slots are typically 1–3 hours
 - Do NOT suggest a room+day+time that is already booked
 - Return JSON only, no prose
+- For general questions (what's in R101, show schedule, which rooms are free) answer in "understood" field and leave suggestions empty
 
 Output format:
 {
-  "understood": "one sentence of what you understood the request to be",
+  "understood": "answer to the question or one sentence of what you understood",
   "suggestions": [
     {
       "room_id": "R101",
@@ -53,7 +62,7 @@ Output format:
       "reason": "why this slot fits"
     }
   ],
-  "tips": "optional short scheduling tip"
+  "tips": "optional short tip"
 }`;
 
     try {
