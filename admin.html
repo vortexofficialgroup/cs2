@@ -510,7 +510,7 @@
 
         <!-- Header -->
         <div class="ai-panel-header">
-          <div class="ai-brand"><i class="fa-solid fa-brain"></i> AI Scheduling Assistant</div>
+          <div class="ai-brand"><i class="fa-solid fa-brain"></i> AI Admin Assistant</div>
           <div class="ai-subtitle">Powered by Gemini · Understands your campus data in real time</div>
         </div>
 
@@ -563,7 +563,7 @@
             <div class="agent-avatar"><i class="fa-solid fa-robot"></i></div>
             <div>
               <div class="agent-name">CampuSyncer Agent</div>
-              <div class="agent-status"><span class="agent-dot"></span> Ready · can read &amp; write your schedule</div>
+              <div class="agent-status"><span class="agent-dot"></span> Ready · can manage schedules, rooms, professors &amp; announcements</div>
             </div>
           </div>
 
@@ -571,20 +571,22 @@
             <span class="agent-ex-label">Try:</span>
             <button class="agent-chip" onclick="agentChip(this)">Cancel all Thursday classes</button>
             <button class="agent-chip" onclick="agentChip(this)">Who can cover Software Engineering Monday 10am?</button>
-            <button class="agent-chip" onclick="agentChip(this)">Move R101 Monday 9am class to R202</button>
+            <button class="agent-chip" onclick="agentChip(this)">Add a 30-seat classroom on floor 2</button>
+            <button class="agent-chip" onclick="agentChip(this)">Add Professor Alex Morgan to Computer Science</button>
+            <button class="agent-chip" onclick="agentChip(this)">Publish an urgent campus closure announcement through Friday</button>
             <button class="agent-chip" onclick="agentChip(this)">Check capacity violations</button>
             <button class="agent-chip" onclick="agentChip(this)">Show all classes on Wednesday</button>
           </div>
 
           <div class="agent-chat" id="agent-chat">
             <div class="agent-msg agent-msg--bot">
-              <div class="agent-bubble">Hey! I'm CampuSyncer. Tell me what you need — I can add, edit, or cancel classes, find substitutes, check conflicts, and answer questions about your schedule.</div>
+              <div class="agent-bubble">Hey! I'm CampuSyncer. I can answer questions and manage schedules, rooms, professors, and announcements. I'll ask you to confirm changes that update or remove data, or publish announcements. Staff accounts, professor contact details, and security settings stay in their protected admin screens.</div>
             </div>
           </div>
 
           <div class="agent-input-row">
             <input id="agent-input" class="agent-input" type="text"
-              placeholder='e.g. "Add Dr. Ahmed to Thursday 2pm in LAB-A for Data Structures"'
+              placeholder='e.g. "Add a room" or "Publish an announcement"'
               onkeydown="if(event.key==='Enter')agentSend()" />
             <button class="btn-agent-send" onclick="agentSend()" id="agent-send-btn">
               <i class="fa-solid fa-paper-plane"></i>
@@ -1430,6 +1432,48 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 let agentHistory = [];
 let agentPending = null; // pending action awaiting confirmation
 
+function agentOperationalState() {
+  return {
+    rooms: ROOMS,
+    schedule: SCHEDULE,
+    professors: PROFESSORS,
+    announcements: ANNOUNCEMENTS,
+  };
+}
+
+async function agentPersistResult(data) {
+  if (!data.executed || !data.operational_state) return;
+
+  const state = data.operational_state;
+  const section = {
+    create_entry: 'schedule', update_entry: 'schedule', delete_entry: 'schedule', delete_multiple: 'schedule',
+    create_room: 'rooms', update_room: 'rooms', delete_room: 'rooms',
+    create_professor: 'professors', update_professor: 'all', delete_professor: 'professors',
+    create_announcement: 'announcements', delete_announcement: 'announcements',
+  }[data.action];
+  if (!section) return;
+
+  applyPortalState({
+    rooms: state.rooms,
+    sc: state.schedule,
+    pr: state.professors,
+    an: state.announcements,
+  });
+  if (!await persistChanges(section)) {
+    data.executed = false;
+    data.reply = '⚠️ The action could not be saved to shared campus data.';
+  }
+
+  updateQuickStats();
+  populateDropdowns();
+  if (section === 'schedule' || section === 'all' || data.action === 'update_professor') {
+    renderAdmSched(); sbRefreshSubs(); sbRenderList();
+  }
+  if (section === 'rooms' || section === 'all') renderAdmRooms();
+  if (section === 'professors' || section === 'all') renderAdmProfs();
+  if (section === 'announcements' || section === 'all') renderAnnouncements();
+}
+
 function agentChip(el) {
   document.getElementById('agent-input').value = el.textContent.trim();
   agentSend();
@@ -1511,18 +1555,17 @@ async function agentExecuteConfirmed(pendingAction) {
         message: 'confirmed',
         history: agentHistory,
         pending_action: pendingAction,
+        operational_state: agentOperationalState(),
       }),
     });
-    agentRemoveTyping();
     const data = await r.json();
+    agentRemoveTyping();
+    if (!r.ok) throw new Error(data.error || `Request failed (${r.status})`);
+    await agentPersistResult(data);
     agentPending = null;
     const type = data.executed ? 'success' : (data.reply.includes('⚠️') ? 'error' : '');
     agentAppend('bot', data.reply, type);
     agentHistory.push({ role: 'assistant', content: data.reply });
-    // Refresh schedule table if something changed
-    if (data.executed && ['create_entry','update_entry','delete_entry','delete_multiple'].includes(data.action)) {
-      if (typeof renderAdmSchedule === 'function') renderAdmSchedule();
-    }
   } catch (e) {
     agentRemoveTyping();
     agentAppend('bot', '⚠️ Request failed: ' + e.message, 'error');
@@ -1546,7 +1589,11 @@ async function agentSend() {
     const r = await fetch('/api/ai/agent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg, history: agentHistory }),
+      body: JSON.stringify({
+        message: msg,
+        history: agentHistory,
+        operational_state: agentOperationalState(),
+      }),
     });
     agentRemoveTyping();
     const data = await r.json();
@@ -1556,6 +1603,7 @@ async function agentSend() {
       return;
     }
 
+    await agentPersistResult(data);
     agentHistory.push({ role: 'assistant', content: data.reply });
 
     if (data.confirm_required && data.pending_action) {
@@ -1565,9 +1613,6 @@ async function agentSend() {
     } else {
       const type = data.executed ? 'success' : (data.reply && data.reply.includes('⚠️') ? 'error' : '');
       agentAppend('bot', data.reply, type);
-      if (data.executed && ['create_entry','update_entry','delete_entry','delete_multiple'].includes(data.action)) {
-        if (typeof renderAdmSchedule === 'function') renderAdmSchedule();
-      }
     }
   } catch (e) {
     agentRemoveTyping();
