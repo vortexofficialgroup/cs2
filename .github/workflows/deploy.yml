@@ -14,12 +14,13 @@ jobs:
         env:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         with:
           host: ${{ secrets.VULTR_HOST }}
           username: ${{ secrets.VULTR_USER || secrets.VULTR_USERNAME }}
           password: ${{ secrets.VULTR_PASSWORD }}
           key: ${{ secrets.VULTR_SSH_KEY }}
-          envs: ADMIN_PASSWORD,ADMIN_SECRET
+          envs: ADMIN_PASSWORD,ADMIN_SECRET,GEMINI_API_KEY
           script: |
             set -e
             if [ -d /var/www/ue-portal ]; then
@@ -55,6 +56,13 @@ jobs:
             ADMIN_PASSWORD_STORE_FILE=/var/lib/ue-portal/admin-password.json
             EOF
               chmod 600 /etc/ue-portal.env
+            fi
+            if [ -n "$GEMINI_API_KEY" ]; then
+              sed -i '/^GEMINI_API_KEY=/d' /etc/ue-portal.env
+              printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY" >> /etc/ue-portal.env
+              chmod 600 /etc/ue-portal.env
+            else
+              echo "Warning: GEMINI_API_KEY Actions secret is not configured; AI requests will fail."
             fi
             set -a
             . /etc/ue-portal.env

@@ -48,7 +48,7 @@ bash scripts/vultr-setup.sh
 
 The script installs Nginx, Node.js 20, and PM2, configures the firewall and Nginx, and prints your next steps.
 
-The deployment workflow starts the API, preserves the existing Nginx domain configuration while adding the `/api/` proxy if needed, tests the Nginx configuration, and checks both the API and proxy. If `/etc/ue-portal.env` is missing, it creates the file from the `ADMIN_PASSWORD` and `ADMIN_SECRET` Actions secrets.
+The deployment workflow starts the API, preserves the existing Nginx domain configuration while adding the `/api/` proxy if needed, tests the Nginx configuration, and checks both the API and proxy. If `/etc/ue-portal.env` is missing, it creates the file from the `ADMIN_PASSWORD` and `ADMIN_SECRET` Actions secrets. It also syncs `GEMINI_API_KEY` from Actions secrets to the server environment when configured.
 
 Keep `/etc/ue-portal.env`, `/var/lib/ue-portal/staff-users.json`, and `/var/lib/ue-portal/admin-password.json` private; back up the two data files. The API environment file and account data are stored on the VPS, not in the web root.
 
@@ -67,9 +67,11 @@ Add these deployment secrets:
 | `VULTR_SSH_KEY` | Your **private** SSH key — `cat ~/.ssh/id_rsa` |
 | `ADMIN_PASSWORD` | Initial admin login password (generated during automatic setup if needed) |
 | `ADMIN_SECRET` | Random HMAC signing secret (generated during automatic setup if needed) |
+| `GEMINI_API_KEY` | API key for the Gemini-powered admin assistant |
 
 > **Never** paste your private key anywhere except GitHub Secrets.
 > `VULTR_USERNAME` and `VULTR_PASSWORD` are also accepted for existing deployments; an SSH key is preferred.
+> Without `GEMINI_API_KEY`, AI requests will fail and display a temporary-busy error.
 
 ---
 
