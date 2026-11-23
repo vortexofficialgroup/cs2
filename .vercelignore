@@ -1,0 +1,32 @@
+# VPS/Docker infrastructure (not needed on Vercel)
+nginx/
+scripts/
+.Dockerfile
+
+# CI/CD
+.github/
+
+# Docs
+README.md
+DEPLOYMENT.md
+LICENSE
+*.md
+
+# Server entry point (Vercel uses /api/ instead)
+data-server.js
+import-schedule.js
+import-ui.js
+
+# Dev files
+package-lock.json
+_.env.example
+.env
+.env.*
+
+# Git/Editor
+.gitignore
+.gitattributes
+.vscode/
+.idea/
+.DS_Store
+*.log
