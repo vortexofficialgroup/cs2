@@ -62,3 +62,20 @@ ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL D
 ALTER TABLE public.student_users ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.student_users FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.student_users TO service_role;
+
+-- Sign-in / audit log for student access attempts.
+CREATE TABLE IF NOT EXISTS public.access_log (
+  id TEXT PRIMARY KEY,
+  at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  actor_type TEXT NOT NULL DEFAULT 'student',
+  email TEXT NOT NULL DEFAULT '',
+  name TEXT NOT NULL DEFAULT '',
+  method TEXT NOT NULL DEFAULT '',
+  ok BOOLEAN NOT NULL DEFAULT FALSE,
+  reason TEXT NOT NULL DEFAULT '',
+  ip TEXT NOT NULL DEFAULT ''
+);
+
+ALTER TABLE public.access_log ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.access_log FROM PUBLIC, anon, authenticated;
+GRANT SELECT, INSERT ON TABLE public.access_log TO service_role;

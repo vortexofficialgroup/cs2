@@ -561,6 +561,14 @@
         <div style="font-size:12px;color:var(--txt-muted);margin-bottom:10px">Created automatically on first Microsoft sign-in. Click Edit to change their permissions.</div>
         <div id="sso-staff-list"><div class="empty-state">Loading…</div></div>
       </div>
+      <div class="card" style="margin-top:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px">
+          <div class="card-title" style="margin-bottom:0"><i class="fa-solid fa-clock-rotate-left" style="color:var(--txt-muted)"></i> Student Access Log</div>
+          <button class="btn btn-out btn-sm" onclick="loadAccessLog()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </div>
+        <div style="font-size:12px;color:var(--txt-muted);margin-bottom:10px">Shows student sign-in attempts (Microsoft and password), including failures and reasons.</div>
+        <div id="access-log-list"><div class="empty-state">Loading access log…</div></div>
+      </div>
     </div>
 
     <!-- ═══ AI ASSISTANT TAB ═══ -->
@@ -1063,7 +1071,7 @@ function setTab(t){
   if(t==='announce') renderAnnouncements();
   if(t==='reports')  renderReports();
   if(t==='settings') loadSettings();
-  if(t==='staff')    {loadStaffAccounts();loadSsoStaff();renderPermissionPickers();loadMicrosoftSettings();}
+  if(t==='staff')    {loadStaffAccounts();loadSsoStaff();loadAccessLog();renderPermissionPickers();loadMicrosoftSettings();}
 }
 
 function staffRow(container,user,onEdit,onRemove){
@@ -1178,6 +1186,27 @@ async function removeSsoStaff(email){
     await loadSsoStaff();
     showToast('Microsoft staff account removed');
   }catch(err){showToast(err.message);}
+}
+
+async function loadAccessLog(){
+  const container=document.getElementById('access-log-list');
+  if(!container)return;
+  container.textContent='Loading access log…';
+  try{
+    const {rows}=await apiRequest('/api/admin/access-log?limit=100');
+    if(!rows||rows.length===0){container.textContent='No sign-in attempts recorded yet.';return;}
+    container.innerHTML='<div style="overflow:auto"><table class="adm-tbl" style="min-width:720px"><thead><tr><th>Time</th><th>Type</th><th>Email</th><th>Name</th><th>Method</th><th>Status</th><th>Reason</th></tr></thead><tbody>'+
+      rows.map(r=>`<tr>
+        <td style="white-space:nowrap;font-size:12px">${new Date(r.at).toLocaleString()}</td>
+        <td style="font-size:12px">${r.actorType||''}</td>
+        <td style="font-size:12px">${r.email||''}</td>
+        <td style="font-size:12px">${r.name||''}</td>
+        <td style="font-size:12px">${r.method||''}</td>
+        <td style="font-size:12px;font-weight:700;color:${r.ok?'#16A34A':'#DC2626'}">${r.ok?'Success':'Failed'}</td>
+        <td style="font-size:12px;color:var(--txt-muted)">${(r.reason||'').replace(/</g,'&lt;')}</td>
+      </tr>`).join('')+
+      '</tbody></table></div>';
+  }catch(err){container.textContent=err.message;}
 }
 
 // ═══════════════════════════════════════════════

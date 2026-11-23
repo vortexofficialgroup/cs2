@@ -32,3 +32,20 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.sso_staff TO service_role;
 ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS linked_professor TEXT NOT NULL DEFAULT '';
 ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS photo TEXT NOT NULL DEFAULT '';
 ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT '';
+
+-- Student sign-in/audit log shown in Admin.
+CREATE TABLE IF NOT EXISTS public.access_log (
+  id TEXT PRIMARY KEY,
+  at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  actor_type TEXT NOT NULL DEFAULT 'student',
+  email TEXT NOT NULL DEFAULT '',
+  name TEXT NOT NULL DEFAULT '',
+  method TEXT NOT NULL DEFAULT '',
+  ok BOOLEAN NOT NULL DEFAULT FALSE,
+  reason TEXT NOT NULL DEFAULT '',
+  ip TEXT NOT NULL DEFAULT ''
+);
+
+ALTER TABLE public.access_log ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.access_log FROM PUBLIC, anon, authenticated;
+GRANT SELECT, INSERT ON TABLE public.access_log TO service_role;

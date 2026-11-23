@@ -39,6 +39,7 @@ const ROUTES = {
   'GET /api/admin/sso-staff':         require('../lib/routes/admin/sso-staff'),
   'PUT /api/admin/sso-staff':         require('../lib/routes/admin/sso-staff'),
   'DELETE /api/admin/sso-staff':      require('../lib/routes/admin/sso-staff'),
+  'GET /api/admin/access-log':        require('../lib/routes/admin/access-log'),
   'GET /api/admin/rooms':             require('../lib/routes/admin/rooms'),
   'GET /api/admin/professors':        require('../lib/routes/admin/professors'),
   'PUT /api/admin/professors':        require('../lib/routes/admin/professors'),
