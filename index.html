@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Raleway:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261123-login2">
+<link rel="stylesheet" href="styles.css?v=20261123-login3">
 </head>
 <body class="cs-locked">
 
@@ -219,8 +219,6 @@
         <div class="cs-logo-sub">by vortex</div>
       </div>
     </div>
-    <div class="cs-loading"><span></span><span></span><span></span></div>
-    <div class="cs-splash-text" id="cs-splash-text">Preparing your campus…</div>
   </div>
 </div>
 
@@ -1309,7 +1307,6 @@ async function csBoot(){
   await csLoadMicrosoftConfig();
   const seen=sessionStorage.getItem('csSeen')==='1';
   await Promise.all([window.csDataReady||Promise.resolve(),csWait(seen?700:2100)]);
-  document.getElementById('cs-splash-text').textContent='Ready — opening your portal…';
   await csWait(320);
   const splash=document.getElementById('cs-splash');
   splash.classList.add('fade-out');

@@ -384,6 +384,15 @@ input,select,textarea{font-family:inherit}
 .cs-splash.fade-out,.cs-gate.fade-out{opacity:0;pointer-events:none}
 .cs-splash-card,.cs-gate-card{width:min(440px,100%);background:linear-gradient(160deg,#fff 0%,#fff7f7 100%);border:1px solid rgba(200,16,46,.18);border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.45);padding:38px 32px 32px;text-align:center;position:relative;overflow:hidden}
 .cs-splash-card::before,.cs-gate-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#9B0D22,#C8102E,#ff6b6b,#C8102E,#9B0D22);background-size:200% 100%;animation:csSlide 2.5s linear infinite}
+.cs-splash{background:rgba(8,10,16,.68);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.cs-splash-card{width:min(240px,100%);background:none;border:0;border-radius:0;box-shadow:none;padding:10px;overflow:visible}
+.cs-splash-card::before{display:none}
+.cs-splash-card .cs-logo{gap:10px}
+.cs-splash-card .cs-logo-mark{width:56px;height:56px;border-radius:16px;box-shadow:0 8px 20px rgba(200,16,46,.28)}
+.cs-splash-card .cs-logo-mark::before{inset:-6px;border-radius:20px;border-width:2px}
+.cs-splash-card .cs-ue-mark{width:36px}
+.cs-splash-card .cs-logo-name{font-size:20px;margin-top:2px}
+.cs-splash-card .cs-logo-sub{font-size:9px;margin-top:4px;color:rgba(255,255,255,.7)}
 .cs-logo{display:flex;flex-direction:column;align-items:center;gap:18px}
 .cs-logo-mark{width:92px;height:92px;border-radius:26px;display:grid;place-items:center;position:relative;background:linear-gradient(145deg,#C8102E,#9B0D22);box-shadow:0 12px 32px rgba(200,16,46,.34);animation:csFloat 2.4s ease-in-out infinite}
 .cs-logo-mark::before{content:"";position:absolute;inset:-9px;border-radius:32px;border:3px solid transparent;border-top-color:#C8102E;border-right-color:rgba(200,16,46,.35);animation:csSpin 1.5s linear infinite}
