@@ -38,6 +38,10 @@ const ROUTES = {
   'GET /api/admin/announcements':     require('../api/admin/announcements'),
   'POST /api/admin/announcements':    require('../api/admin/announcements'),
   'DELETE /api/admin/announcements':  require('../api/admin/announcements'),
+  // ── AI endpoints ──
+  'POST /api/ai/suggest':             require('../api/ai/suggest'),
+  'GET /api/ai/analyze':              require('../api/ai/analyze'),
+  'GET /api/ai/conflicts':            require('../api/ai/conflicts'),
 };
 
 // ─── MIME types ───────────────────────────────────────────────────────────
