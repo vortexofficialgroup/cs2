@@ -31,7 +31,6 @@
       <div class="nav-tab" data-view="schedule" onclick="switchView('schedule')"><i class="fa-solid fa-calendar-days"></i><span>Schedule</span></div>
     </div>
     <div class="topbar-right">
-      <a href="admin.html" class="btn btn-out btn-sm" style="text-decoration:none"><i class="fa-solid fa-shield-halved"></i> Admin</a>
       <div id="live-clock">--:-- --</div>
     </div>
   </div>
@@ -269,7 +268,6 @@
       <button class="cs-ms" id="cs-ms-btn" style="display:none" onclick="csMicrosoftLogin('staff')"><i class="fa-brands fa-microsoft"></i> Sign in with Microsoft</button>
       <div class="cs-switch" id="cs-ms-note" style="display:none">University Microsoft accounts only.</div>
       <div class="cs-switch">Don't have a Microsoft account? <a href="https://login.microsoftonline.com/signup" target="_blank" rel="noopener" style="color:var(--red);font-weight:700;text-decoration:none">Create new account</a><br><span style="font-size:10px">Use your university email.</span></div>
-      <div class="cs-switch">Administrator? <a href="admin.html" style="color:var(--red);font-weight:700;text-decoration:none">Open admin panel</a></div>
       <div class="cs-error" id="cs-staff-error"></div>
     </div>
   </div>
@@ -1303,6 +1301,10 @@ async function csHandleMicrosoftReturn(){
   }
 }
 async function csBoot(){
+  if(new URLSearchParams(location.search).has('admin')){
+    location.replace('admin.html');
+    return;
+  }
   document.body.classList.add('cs-locked');
   await csLoadMicrosoftConfig();
   const seen=sessionStorage.getItem('csSeen')==='1';
