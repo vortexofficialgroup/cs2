@@ -29,6 +29,18 @@ Keep all keys and passwords in Vercel's environment-variable settings. Never
 put the Supabase service-role key in browser code or expose it with a
 `VITE_`-prefixed variable.
 
+## Staff access
+
+Staff accounts are created in **Settings → Staff Access**. Give a professor or
+staff member only **View AI reports (read-only)** to let them open the AI tab's
+Conflict Scan and Utilization Report without any editing or agent-chat access.
+
+These accounts are currently stored in a local JSON file
+(`STAFF_STORE_FILE`, default `~/.ue-portal/staff-users.json`). That works for a
+single long-running Node server, but Vercel's serverless filesystem is
+ephemeral, so staff accounts will not survive cold starts or redeploys there.
+Move the staff store to Supabase before relying on staff logins in production.
+
 ## Custom domain
 
 Add your domain in the Vercel project's **Settings → Domains** and follow
