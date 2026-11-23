@@ -409,11 +409,11 @@ function renderDash(){
   const nowItems=sched.filter(s=>s.day===today&&t2m(s.start)<=min&&t2m(s.end)>min);
   const nowEl=document.getElementById('now-list');
   nowEl.innerHTML=nowItems.length===0?'<div class="empty-state"><i class="fa-regular fa-clock"></i>No classes in session right now</div>'
-    :nowItems.map(e=>`<div class="class-item" onclick="openClass(${e.id})"><div class="ci-dot occ"></div><div class="ci-info"><div class="ci-name">${e.course}</div><div class="ci-meta">${effProfHtml(e)} · ${fmtT(e.start)}–${fmtT(e.end)} · ends in ${t2m(e.end)-min}m</div></div><div class="ci-room">${e.roomId}</div></div>`).join('');
+    :nowItems.map(e=>`<div class="class-item" onclick="openClass(${e.id})"><div class="ci-dot occ"></div><div class="ci-info"><div class="ci-name">${esc(e.course)}</div><div class="ci-meta">${effProfHtml(e)} · ${fmtT(e.start)}–${fmtT(e.end)} · ends in ${t2m(e.end)-min}m</div></div><div class="ci-room">${e.roomId}</div></div>`).join('');
   const nxt=sched.filter(s=>s.day===today&&t2m(s.start)>min).sort((a,b)=>t2m(a.start)-t2m(b.start)).slice(0,5);
   const nxtEl=document.getElementById('next-list');
   nxtEl.innerHTML=nxt.length===0?'<div class="empty-state"><i class="fa-regular fa-calendar"></i>No more classes today</div>'
-    :nxt.map(e=>{const diff=t2m(e.start)-min;return`<div class="class-item" onclick="openClass(${e.id})"><div class="ci-dot ${diff<=15?'soon':'free'}"></div><div class="ci-info"><div class="ci-name">${e.course}</div><div class="ci-meta">${effProfHtml(e)} · ${fmtT(e.start)}${diff<=90?` (in ${diff}m)`:''}</div></div><div class="ci-room">${e.roomId}</div></div>`;}).join('');
+    :nxt.map(e=>{const diff=t2m(e.start)-min;return`<div class="class-item" onclick="openClass(${e.id})"><div class="ci-dot ${diff<=15?'soon':'free'}"></div><div class="ci-info"><div class="ci-name">${esc(e.course)}</div><div class="ci-meta">${effProfHtml(e)} · ${fmtT(e.start)}${diff<=90?` (in ${diff}m)`:''}</div></div><div class="ci-room">${e.roomId}</div></div>`;}).join('');
   renderFP();renderFreeNow();
   const ft=document.getElementById('f-time');if(ft&&!ft.value)ft.value=m2t(min);
 }
@@ -433,7 +433,7 @@ function findFree(){
   });
   const res=document.getElementById('f-res');
   res.innerHTML=freeRooms.length===0?'<span style="opacity:.75;font-size:12.5px">No free rooms for that slot — try a different time or duration.</span>'
-    :`<span style="opacity:.7;font-size:12px;margin-right:4px">${freeRooms.length} free:</span>`+freeRooms.map(r=>`<span class="f-pill" onclick="openRoom('${r.id}')"><i class="fa-solid fa-door-open"></i>${r.id} · ${r.type} · ${r.capacity} chairs</span>`).join('');
+    :`<span style="opacity:.7;font-size:12px;margin-right:4px">${freeRooms.length} free:</span>`+freeRooms.map(r=>`<span class="f-pill" onclick="openRoom('${escAttr(r.id)}')"><i class="fa-solid fa-door-open"></i>${esc(r.id)} · ${esc(r.type)} · ${esc(r.capacity)} chairs</span>`).join('');
 }
 
 // ══════════════════════════════════════════════════
@@ -505,8 +505,8 @@ function renderFP(){
     if(dotC[st.status]) svg+=`<circle cx="${rx+rw-11}" cy="${ry+11}" r="6" fill="${dotC[st.status]}" ${F}/>`;
 
     const isNum=/^\d+$/.test(id);
-    const big=isNum?id:(id==='DHL'?'DHL':'CAFÉ');
-    const sub=isNum?room.type:(id==='DHL'?'Library':'Open Space');
+    const big=isNum?esc(id):(id==='DHL'?'DHL':'CAFÉ');
+    const sub=isNum?esc(room.type):(id==='DHL'?'Library':'Open Space');
     // Helper: true if text at offset dy fits inside the room rect
     const fits=dy=>ry+dy < y+h-4;
 
@@ -522,7 +522,7 @@ function renderFP(){
       const typeOff=rh<100?42:46;
       if(fits(typeOff)) svg+=`<text x="${midX}" y="${ry+typeOff}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#4B5563" ${F}>${sub}</text>`;
       const capOff=rh<100?55:60;
-      if(room.capacity>0&&fits(capOff)) svg+=`<text x="${midX}" y="${ry+capOff}" text-anchor="middle" font-size="9" fill="#6B7280" ${F}>${room.capacity} chairs</text>`;
+      if(room.capacity>0&&fits(capOff)) svg+=`<text x="${midX}" y="${ry+capOff}" text-anchor="middle" font-size="9" fill="#6B7280" ${F}>${esc(room.capacity)} chairs</text>`;
 
       if(rh>=86){
         const pills={occ:['IN SESSION','#EF4444'],free:['FREE','#22C55E'],empty:['FREE','#22C55E'],soon:['SOON','#D97706'],staff:['STAFF ONLY','#DC2626'],event:['EVENT','#EA580C'],booked:['BOOKED','#7C3AED']};
@@ -538,7 +538,7 @@ function renderFP(){
       }
       if((st.status==='occ'||st.status==='soon')&&st.entry){
         const codeOff=rh<100?90:100;
-        if(fits(codeOff)) svg+=`<text x="${midX}" y="${ry+codeOff}" text-anchor="middle" font-size="9" font-weight="700" fill="#374151" ${F}>${st.entry.code}</text>`;
+        if(fits(codeOff)) svg+=`<text x="${midX}" y="${ry+codeOff}" text-anchor="middle" font-size="9" font-weight="700" fill="#374151" ${F}>${esc(st.entry.code)}</text>`;
         const timeOff=codeOff+13;
         if(fits(timeOff)){
           const line=st.status==='occ'?`ends ${fmtDur(t2m(st.entry.end)-min)}`:`in ${fmtDur(t2m(st.entry.start)-min)}`;
@@ -596,7 +596,7 @@ function renderFP(){
         const stF=fitLines(bl[0],bh>40?10.5:9,'700',1);
         svg+=`<text x="${midX}" y="${nmY+nm.lines.length*(nm.fz+2)+2}" text-anchor="middle" font-size="${stF.fz}" font-weight="700" fill="#7F1D1D" ${F}>${esc(stF.lines[0])}</text>`;
         svg+=`</g>`;
-        svg+=`<rect class="fp-hit" x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4" fill="rgba(0,0,0,0)" onclick="openRoom('${id}')"/></g>`;
+        svg+=`<rect class="fp-hit" x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4" fill="rgba(0,0,0,0)" onclick="openRoom('${escAttr(id)}')"/></g>`;
         return;
       }
       let ty=ry+(rh<70?15:22);
@@ -611,7 +611,7 @@ function renderFP(){
       });
       svg+=`</g>`;
     }
-    svg+=`<rect class="fp-hit" x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4" fill="rgba(0,0,0,0)" onclick="openRoom('${id}')"/></g>`;
+    svg+=`<rect class="fp-hit" x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4" fill="rgba(0,0,0,0)" onclick="openRoom('${escAttr(id)}')"/></g>`;
   });
 
   // Movable wall 204+205: only shown when BOTH rooms are actively in use at the same time
@@ -655,7 +655,7 @@ function renderFreeNow(){
     :items.map(i=>{
       const soon=i.gap!==null&&i.gap<=15;
       const until=i.gap===null?'Free for the rest of the day':`Free for ${fmtDur(i.gap)}`;
-      return `<div class="free-chip ${soon?'soon':''} ${i.merged?'merged':''}" onclick="openRoom('${i.id}')"><div class="fc-num">${i.label}</div><div class="fc-info"><div class="fc-name">${i.type}</div><div class="fc-meta">${i.cap} chairs</div><div class="fc-until">${until}</div></div></div>`;
+      return `<div class="free-chip ${soon?'soon':''} ${i.merged?'merged':''}" onclick="openRoom('${escAttr(i.id)}')"><div class="fc-num">${esc(i.label)}</div><div class="fc-info"><div class="fc-name">${esc(i.type)}</div><div class="fc-meta">${esc(i.cap)} chairs</div><div class="fc-until">${until}</div></div></div>`;
     }).join('');
 }
 
@@ -665,19 +665,19 @@ function fpHover(id,event){
   const st=roomStatus(id,today,min);
   const stC={occ:'#F87171',soon:'#FCD34D',free:'#4ADE80',empty:'#4ADE80',staff:'#F87171',public:'#7DD3FC',maintenance:'#9CA3AF',event:'#FBBF24',booked:'#C4B5FD'};
   const stL={occ:'In Session',soon:'Starting Soon',free:'Free Now',empty:'Free Now',staff:'Staff only · not for students',public:'Open to everyone',maintenance:'Under Maintenance',event:'Event Running',booked:'Booked for Event'};
-  let html=`<strong style="font-size:13px">${room.name}</strong><br><span style="color:${stC[st.status]};font-weight:700;font-size:12px">${stL[st.status]}</span>`;
+  let html=`<strong style="font-size:13px">${esc(room.name)}</strong><br><span style="color:${stC[st.status]};font-weight:700;font-size:12px">${stL[st.status]}</span>`;
   if(st.status==='occ'&&st.entry){
-    html+=`<div style="margin-top:5px;font-size:11.5px"><strong>${st.entry.code}</strong>: ${st.entry.course}</div>`;
+    html+=`<div style="margin-top:5px;font-size:11.5px"><strong>${esc(st.entry.code)}</strong>: ${esc(st.entry.course)}</div>`;
     html+=`<div style="font-size:11px;color:#D1D5DB">${effProfHtml(st.entry)}</div>`;
     html+=`<div style="font-size:11px;color:#9CA3AF">Started ${fmtDur(min-t2m(st.entry.start))} ago · ends in ${fmtDur(t2m(st.entry.end)-min)}</div>`;
   } else if(st.status==='soon'&&st.entry){
-    html+=`<div style="margin-top:5px;font-size:11.5px"><strong>${st.entry.code}</strong>: ${st.entry.course}</div>`;
+    html+=`<div style="margin-top:5px;font-size:11.5px"><strong>${esc(st.entry.code)}</strong>: ${esc(st.entry.course)}</div>`;
     html+=`<div style="font-size:11px;color:#9CA3AF">Starts in ${fmtDur(t2m(st.entry.start)-min)} · ${fmtT(st.entry.start)}</div>`;
   } else if(st.status==='free'||st.status==='empty'){
     const nxt=SCHEDULE.filter(s=>s.roomId===id&&s.day===today&&t2m(s.start)>min).sort((a,b)=>t2m(a.start)-t2m(b.start))[0];
-    html+=`<div style="margin-top:4px;font-size:11px;color:#9CA3AF">${nxt?`Next class: ${fmtT(nxt.start)} · ${nxt.code}`:'No more classes today'}</div>`;
+    html+=`<div style="margin-top:4px;font-size:11px;color:#9CA3AF">${nxt?`Next class: ${fmtT(nxt.start)} · ${esc(nxt.code)}`:'No more classes today'}</div>`;
   }
-  if(room.capacity>0) html+=`<div style="margin-top:6px;font-size:10.5px;color:#9CA3AF;border-top:1px solid #374151;padding-top:5px">${room.type} · ${room.capacity} chairs · <em>Click for details</em></div>`;
+  if(room.capacity>0) html+=`<div style="margin-top:6px;font-size:10.5px;color:#9CA3AF;border-top:1px solid #374151;padding-top:5px">${esc(room.type)} · ${esc(room.capacity)} chairs · <em>Click for details</em></div>`;
   const tt=document.getElementById('fp-tt');
   tt.innerHTML=html;
   const wrap=document.querySelector('.fp-wrap').getBoundingClientRect();
@@ -806,7 +806,7 @@ function renderSchedTable(){
     :entries.map(e=>{
       const isNow=isToday&&t2m(e.start)<=min&&t2m(e.end)>min;
       const isSoon=isToday&&t2m(e.start)>min&&t2m(e.start)-min<=15;
-      return`<tr class="sched-row ${isNow?'row-now':''}" onclick="openClass(${e.id})" title="Click for details"><td style="color:var(--txt-muted);font-variant-numeric:tabular-nums;white-space:nowrap">${fmtT(e.start)} – ${fmtT(e.end)}</td><td><div class="cname">${e.course}</div>${isNow?`<span class="live-badge" style="margin-top:4px;display:inline-flex"><i class="fa-solid fa-circle" style="font-size:7px"></i> In Session · started ${fmtDur(min-t2m(e.start))} ago</span>`:''}${isSoon?'<div style="font-size:11px;font-weight:700;color:var(--yellow);margin-top:3px">Starting soon</div>':''}</td><td><span class="code-pill">${e.code}</span></td><td><span class="room-link" onclick="event.stopPropagation();openRoom('${e.roomId}')"><i class="fa-solid fa-door-open"></i>${e.roomId}</span></td><td style="color:var(--txt-mid)">${effProfHtml(e)}</td><td><span class="prog-tag">${e.program}</span></td></tr>`;
+      return`<tr class="sched-row ${isNow?'row-now':''}" onclick="openClass(${e.id})" title="Click for details"><td style="color:var(--txt-muted);font-variant-numeric:tabular-nums;white-space:nowrap">${fmtT(e.start)} – ${fmtT(e.end)}</td><td><div class="cname">${esc(e.course)}</div>${isNow?`<span class="live-badge" style="margin-top:4px;display:inline-flex"><i class="fa-solid fa-circle" style="font-size:7px"></i> In Session · started ${fmtDur(min-t2m(e.start))} ago</span>`:''}${isSoon?'<div style="font-size:11px;font-weight:700;color:var(--yellow);margin-top:3px">Starting soon</div>':''}</td><td><span class="code-pill">${esc(e.code)}</span></td><td><span class="room-link" onclick="event.stopPropagation();openRoom('${escAttr(e.roomId)}')"><i class="fa-solid fa-door-open"></i>${esc(e.roomId)}</span></td><td style="color:var(--txt-mid)">${effProfHtml(e)}</td><td><span class="prog-tag">${esc(e.program)}</span></td></tr>`;
     }).join('');
 }
 
@@ -856,11 +856,11 @@ function quickSearch(q){
   let h='';
   if(cs.length){
     h+=`<div style="padding:7px 12px;font-size:10px;font-weight:800;color:var(--txt-muted);letter-spacing:.05em;text-transform:uppercase">Courses</div>`;
-    h+=cs.map(s=>`<div style="padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''" onclick="searchCourse('${s.code}')"><span class="code-pill" style="font-size:10px">${s.code}</span><span>${s.course}</span></div>`).join('');
+    h+=cs.map(s=>`<div style="padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''" onclick="searchCourse('${escAttr(s.code)}')"><span class="code-pill" style="font-size:10px">${esc(s.code)}</span><span>${esc(s.course)}</span></div>`).join('');
   }
   if(rs.length){
     h+=`<div style="padding:7px 12px;font-size:10px;font-weight:800;color:var(--txt-muted);letter-spacing:.05em;text-transform:uppercase;border-top:1px solid var(--border)">Rooms</div>`;
-    h+=rs.map(r=>`<div style="padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''" onclick="openRoom('${r.id}');closeQS()"><i class="fa-solid fa-door-open" style="color:var(--txt-muted);font-size:12px"></i><span>${r.name} <span style="color:var(--txt-muted);font-size:11.5px">(${r.id})</span></span></div>`).join('');
+    h+=rs.map(r=>`<div style="padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''" onclick="openRoom('${escAttr(r.id)}');closeQS()"><i class="fa-solid fa-door-open" style="color:var(--txt-muted);font-size:12px"></i><span>${esc(r.name)} <span style="color:var(--txt-muted);font-size:11.5px">(${esc(r.id)})</span></span></div>`).join('');
   }
   dd.innerHTML=h;dd.style.display='block';
 }

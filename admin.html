@@ -987,6 +987,7 @@ async function handleMicrosoftReturn(){
 }
 
 function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function escAttr(s){return esc(s).replace(/`/g,'&#96;');}
 
 // ═══════════════════════════════════════════════
 // DASHBOARD INIT
@@ -1042,7 +1043,7 @@ function updateQuickStats(){
 function populateDropdowns(){
   // Room select
   const rs=document.getElementById('a-room');rs.innerHTML='';
-  ROOMS.filter(r=>r.bookable!==false&&!r.restricted&&!r.publicSpace).forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=`${r.id} — ${r.type} (${r.capacity} chairs)`;rs.appendChild(o);});
+  ROOMS.filter(r=>r.bookable!==false&&!r.restricted&&!r.publicSpace).forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=`${r.id} — ${esc(r.type)} (${esc(r.capacity)} chairs)`;rs.appendChild(o);});
   // Professor select
   const ps=document.getElementById('a-prof-sel');ps.innerHTML='';
   PROFESSORS.forEach(p=>{const o=document.createElement('option');o.value=p.name;o.textContent=p.name;ps.appendChild(o);});
@@ -1086,8 +1087,8 @@ function staffRow(container,user,onEdit,onRemove){
   info.className='staff-account-meta';
   const perms=(user.permissions||[]).join(', ')||'no tab access';
   const caps=(user.aiActions||[]).join(', ')||'no AI access';
-  const linked=user.linkedProfessor?` · teaches: ${user.linkedProfessor}`:' · teaches: not linked';
-  info.textContent=`${user.title||'Staff'} · ${user.username}${linked} · ${perms} · AI: ${caps}`;
+  const linked=user.linkedProfessor?` · teaches: ${esc(user.linkedProfessor)}`:' · teaches: not linked';
+  info.textContent=`${user.title||'Staff'} · ${esc(user.username)}${linked} · ${perms} · AI: ${caps}`;
   details.append(name,info);
   const actions=document.createElement('div');
   actions.style.cssText='display:flex;gap:6px;flex-shrink:0';
@@ -1106,9 +1107,9 @@ function openStaffEditor(container,user,save,refresh){
   const box=document.createElement('div');
   box.style.cssText='padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-soft);margin-bottom:10px';
   const profOptions=['<option value="">— Not linked —</option>'].concat(
-    (PROFESSORS||[]).map(p=>`<option value="${p.name.replace(/"/g,'&quot;')}" ${p.name===user.linkedProfessor?'selected':''}>${p.name}</option>`)
+    (PROFESSORS||[]).map(p=>`<option value="${p.name.replace(/"/g,'&quot;')}" ${p.name===user.linkedProfessor?'selected':''}>${esc(p.name)}</option>`)
   ).join('');
-  box.innerHTML=`<div style="font-size:12.5px;font-weight:700;margin-bottom:10px">${user.displayName} — ${user.username}</div>
+  box.innerHTML=`<div style="font-size:12.5px;font-weight:700;margin-bottom:10px">${esc(user.displayName)} — ${esc(user.username)}</div>
     <div class="ff" style="margin-bottom:8px"><label>Linked professor (staff can only change this professor’s own classes)</label><select id="edit-linked-prof">${profOptions}</select></div>
     <div class="ff" style="margin-bottom:8px"><label>Normal permissions</label><div class="staff-permissions" id="edit-normal">${checkboxList(NORMAL_PERMISSIONS,user.permissions)}</div></div>
     <div class="ff" style="margin-bottom:10px"><label>AI using — what the chatbot may do</label><div class="staff-permissions ai-capabilities" id="edit-caps">${checkboxList(AI_CAPABILITIES,user.aiActions)}</div></div>
@@ -1182,7 +1183,7 @@ async function deleteStaffAccount(id){
   }catch(err){showToast(err.message);}
 }
 async function removeSsoStaff(email){
-  if(!confirm(`Remove Microsoft access for ${email}?`))return;
+  if(!confirm(`Remove Microsoft access for ${esc(email)}?`))return;
   try{
     await apiRequest(`/api/admin/sso-staff?email=${encodeURIComponent(email)}`,{method:'DELETE'});
     await loadSsoStaff();
@@ -1225,11 +1226,11 @@ function renderAdmSched(){
   tb.innerHTML=es.length===0?`<tr><td colspan="7" class="empty-state">No classes on ${DAY_NAMES[curAdmDay]}. <a href="#" onclick="showAddModal();return false" style="color:var(--red)">Add one?</a></td></tr>`
     :es.map(e=>`<tr>
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--txt-muted)">${fmtT(e.start)} – ${fmtT(e.end)}</td>
-      <td style="font-weight:600">${e.course}</td>
-      <td><span class="code-pill">${e.code}</span></td>
-      <td><strong>${e.roomId}</strong></td>
+      <td style="font-weight:600">${esc(e.course)}</td>
+      <td><span class="code-pill">${esc(e.code)}</span></td>
+      <td><strong>${esc(e.roomId)}</strong></td>
       <td>${effProfHtml(e)}</td>
-      <td><span class="prog-tag">${e.program}</span></td>
+      <td><span class="prog-tag">${esc(e.program)}</span></td>
       <td class="ro-hide" style="display:flex;gap:5px">
         <button class="btn btn-out btn-sm mutate" onclick="editEntry(${e.id})" title="Edit"><i class="fa-solid fa-pencil"></i></button>
         <button class="btn btn-out btn-sm mutate" onclick="delEntry(${e.id})" title="Delete" style="color:var(--red);border-color:#FECACA!important"><i class="fa-solid fa-trash-can"></i></button>
@@ -1280,10 +1281,10 @@ function renderAdmRooms(){
     ].map(([v,lbl])=>`<option value="${v}"${ov===v?' selected':''}>${lbl}</option>`).join('');
     return`<tr>
       <td style="font-weight:800">${r.id}</td>
-      <td>${r.name}</td>
-      <td>Floor ${r.floor}</td>
-      <td>${r.type}</td>
-      <td>${r.capacity}</td>
+      <td>${esc(r.name)}</td>
+      <td>Floor ${esc(r.floor)}</td>
+      <td>${esc(r.type)}</td>
+      <td>${esc(r.capacity)}</td>
       <td style="font-size:11px;color:var(--txt-muted)">${(r.features||[]).join(', ')||'—'}</td>
       <td><div class="rp-thumbs">${(ROOM_PHOTOS[r.id]||[]).map((p,i)=>`<div class="rp-thumb"><img src="${p}" alt=""><button class="mutate" title="Remove" onclick="removeRoomPhoto('${r.id}',${i})">×</button></div>`).join('')}<label class="rp-add mutate"><i class="fa-solid fa-camera"></i> Add<input type="file" accept="image/*" multiple hidden onchange="uploadRoomPhotos('${r.id}',this)"></label></div></td>
       <td><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;background:${stC[st.status]||'var(--border)'}">${stL[st.status]||st.status}${ov?' ⚡':''}</span></td>
@@ -1365,7 +1366,7 @@ function sbSelected(){
 function sbInit(){
   const ab=document.getElementById('sb-absent'),names=PROFESSORS.map(p=>p.name);
   if([...ab.options].map(o=>o.value).join('|')!==names.join('|')){
-    const cur=ab.value;ab.innerHTML=names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join('');
+    const cur=ab.value;ab.innerHTML=names.map(n=>`<option value="${escAttr(n)}">${esc(n)}</option>`).join('');
     if(names.includes(cur))ab.value=cur;
   }
   const f=document.getElementById('sb-from'),t=document.getElementById('sb-to');
@@ -1374,7 +1375,7 @@ function sbInit(){
 }
 function sbRefreshClasses(){
   const box=document.getElementById('sb-classes'),aff=sbAffected();
-  box.innerHTML=aff.length?aff.map(s=>`<label><input type="checkbox" value="${s.id}" checked onchange="sbRefreshSubs()"> <b>${sbDays[s.day]}</b> ${fmtT(s.start)}–${fmtT(s.end)} · ${s.code} ${s.course} · ${s.roomId}</label>`).join('')
+  box.innerHTML=aff.length?aff.map(s=>`<label><input type="checkbox" value="${s.id}" checked onchange="sbRefreshSubs()"> <b>${sbDays[s.day]}</b> ${fmtT(s.start)}–${fmtT(s.end)} · ${esc(s.code)} ${esc(s.course)} · ${esc(s.roomId)}</label>`).join('')
     :'<span style="color:var(--txt-muted)">This professor has no classes in the selected dates.</span>';
   sbRefreshSubs();
 }
@@ -1382,11 +1383,11 @@ function sbRefreshClasses(){
 function sbClash(name,occ){
   for(const o of occ){
     const own=SCHEDULE.find(x=>x.professor===name&&x.day===o.e.day&&x.id!==o.e.id&&sbOv(x,o.e)&&!subFor(x,o.date));
-    if(own)return `teaches ${own.code} ${sbDays[own.day]} ${fmtT(own.start)}–${fmtT(own.end)}`;
+    if(own)return `teaches ${esc(own.code)} ${sbDays[own.day]} ${fmtT(own.start)}–${fmtT(own.end)}`;
     for(const r of SUBSTITUTIONS){
       if(r.sub!==name||o.date<r.from||o.date>r.to)continue;
       const cov=SCHEDULE.find(x=>x.professor===r.absent&&x.day===o.e.day&&(!r.entryIds||r.entryIds.includes(x.id))&&sbOv(x,o.e));
-      if(cov)return `already covering ${cov.code} ${sbDays[cov.day]} ${fmtT(cov.start)}–${fmtT(cov.end)}`;
+      if(cov)return `already covering ${esc(cov.code)} ${sbDays[cov.day]} ${fmtT(cov.start)}–${fmtT(cov.end)}`;
     }
   }
   return '';
@@ -1397,7 +1398,7 @@ function sbRefreshSubs(){
   const occ=[];sch.forEach(e=>ds.filter(d=>d.day===e.day).forEach(d=>occ.push({e,date:d.date})));
   const others=PROFESSORS.filter(p=>p.name!==ab);
   const same=others.filter(p=>abP&&p.dept&&p.dept===abP.dept),diff=others.filter(p=>!same.includes(p));
-  const opt=p=>{const c=occ.length?sbClash(p.name,occ):'';return `<option value="${p.name.replace(/"/g,'&quot;')}" ${c?'disabled':''}>${p.name}${c?' — busy: '+c:' ✓ free'}</option>`;};
+  const opt=p=>{const c=occ.length?sbClash(p.name,occ):'';return `<option value="${p.name.replace(/"/g,'&quot;')}" ${c?'disabled':''}>${esc(p.name)}${c?' — busy: '+c:' ✓ free'}</option>`;};
   let h=`<option value="">— choose substitute —</option>`;
   h+=`<optgroup label="Same department${abP&&abP.dept?' ('+abP.dept+')':''}">${same.length?same.map(opt).join(''):'<option disabled>No other professor in this department</option>'}</optgroup>`;
   if(document.getElementById('sb-other').checked&&diff.length)h+=`<optgroup label="Other departments">${diff.map(opt).join('')}</optgroup>`;
@@ -1413,7 +1414,7 @@ async function sbAssign(){
   if(!sub){alert('Choose a substitute professor.');return;}
   const occ=[];sch.forEach(e=>ds.filter(d=>d.day===e.day).forEach(d=>occ.push({e,date:d.date})));
   const taken=occ.find(o=>subFor(o.e,o.date));
-  if(taken){alert(`${taken.e.code} on ${taken.date} already has a substitute (${subFor(taken.e,taken.date).sub}). Remove that one first.`);return;}
+  if(taken){alert(`${taken.e.code} on ${esc(taken.date)} already has a substitute (${subFor(taken.e,taken.date).sub}). Remove that one first.`);return;}
   const clash=sbClash(sub,occ);
   if(clash){alert(`${sub} is busy: ${clash}.`);return;}
   SUBSTITUTIONS.push({id:nextId(),absent,sub,from,to,entryIds:sch.map(s=>s.id),note});
@@ -1434,7 +1435,7 @@ function sbRenderList(){
   body.innerHTML=[...SUBSTITUTIONS].sort((a,b)=>b.from.localeCompare(a.from)).map(r=>{
     const st=r.to<today?['Finished','#E5E7EB','#4B5563']:r.from>today?['Upcoming','#E0F2FE','#075985']:['Active now','#DCFCE7','#166534'];
     const codes=[...new Set(SCHEDULE.filter(s=>r.entryIds?r.entryIds.includes(s.id):s.professor===r.absent).map(s=>s.code))].join(', ')||'—';
-    return `<tr><td>${r.absent}</td><td><b>${r.sub}</b></td><td style="white-space:nowrap">${r.from}${r.to!==r.from?' → '+r.to:''}</td><td style="font-size:11.5px">${codes}</td><td style="font-size:11.5px;color:var(--txt-muted)">${(r.note||'—').replace(/</g,'&lt;')}</td>
+    return `<tr><td>${esc(r.absent)}</td><td><b>${esc(r.sub)}</b></td><td style="white-space:nowrap">${esc(r.from)}${r.to!==r.from?' → '+r.to:''}</td><td style="font-size:11.5px">${codes}</td><td style="font-size:11.5px;color:var(--txt-muted)">${(r.note||'—').replace(/</g,'&lt;')}</td>
       <td><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;background:${st[1]};color:${st[2]}">${st[0]}</span></td>
       <td class="ro-hide"><button class="btn btn-out btn-sm mutate" onclick="sbDelete(${r.id})" title="Cancel" style="color:var(--red);border-color:#FECACA!important"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
   }).join('');
@@ -1451,10 +1452,10 @@ function renderAdmProfs(){
       const diff=(t2m(s.end)-t2m(s.start))/60;return acc+diff;
     },0);
     return`<tr>
-      <td><strong>${p.name}</strong></td>
-      <td><span class="prog-tag">${p.dept}</span></td>
-      <td><a href="mailto:${p.email}" style="color:var(--red)">${p.email}</a></td>
-      <td style="color:var(--txt-muted)">${p.phone}</td>
+      <td><strong>${esc(p.name)}</strong></td>
+      <td><span class="prog-tag">${esc(p.dept)}</span></td>
+      <td><a href="mailto:${esc(p.email)}" style="color:var(--red)">${esc(p.email)}</a></td>
+      <td style="color:var(--txt-muted)">${esc(p.phone)}</td>
       <td style="font-size:12px">${courses.map(c=>`<span class="code-pill" style="margin:1px;font-size:9px">${c}</span>`).join('')||'<span style="color:var(--txt-muted)">No classes</span>'}</td>
       <td style="font-weight:700">${hrs.toFixed(1)}h</td>
       <td class="ro-hide">
@@ -1487,9 +1488,9 @@ function renderAnnouncements(){
             <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:${a.type==='urgent'?'var(--red-lt)':a.type==='warning'?'var(--yellow-bg)':a.type==='exam'?'#F3E8FF':'#EFF6FF'};color:${a.type==='urgent'?'var(--red)':a.type==='warning'?'var(--yellow)':a.type==='exam'?'#7C3AED':'#1D4ED8'}">${a.type.toUpperCase()}</span>
             ${expired?'<span style="font-size:10px;color:var(--txt-muted);font-weight:600">EXPIRED</span>':''}
           </div>
-          <div style="font-weight:700;font-size:13px">${a.title}</div>
-          <div style="font-size:12px;color:var(--txt-muted);margin-top:2px">${a.msg}</div>
-          <div style="font-size:11px;color:var(--txt-muted);margin-top:4px">Posted ${a.created} · Expires ${a.expires}</div>
+          <div style="font-weight:700;font-size:13px">${esc(a.title)}</div>
+          <div style="font-size:12px;color:var(--txt-muted);margin-top:2px">${esc(a.msg)}</div>
+          <div style="font-size:11px;color:var(--txt-muted);margin-top:4px">Posted ${esc(a.created)} · Expires ${esc(a.expires)}</div>
         </div>
         <button class="btn btn-out btn-sm mutate" onclick="delAnn(${a.id})" style="color:var(--red);border-color:#FECACA!important;flex-shrink:0"><i class="fa-solid fa-trash-can"></i></button>
       </div>`;
@@ -1596,7 +1597,7 @@ function renderPermissionPickers(){
   const linked=document.getElementById('staff-linked-prof');
   if(linked){
     const cur=linked.value;
-    linked.innerHTML='<option value="">— Not linked —</option>'+(PROFESSORS||[]).map(p=>`<option value="${p.name.replace(/"/g,'&quot;')}">${p.name}</option>`).join('');
+    linked.innerHTML='<option value="">— Not linked —</option>'+(PROFESSORS||[]).map(p=>`<option value="${escAttr(p.name)}">${esc(p.name)}</option>`).join('');
     if(cur)linked.value=cur;
   }
 }
@@ -1615,7 +1616,7 @@ function loadSettings(){
   document.getElementById('set-addr').value=PORTAL_SETTINGS.campusAddress;
   loadMicrosoftSettings();
   const info=document.getElementById('set-info');
-  if(info)info.innerHTML=`Version: <strong>1.0.0</strong><br>Rooms: <strong>${ROOMS.length}</strong><br>Total schedule entries: <strong>${SCHEDULE.length}</strong><br>Built for: <strong>${PORTAL_SETTINGS.campusName}</strong>`;
+  if(info)info.innerHTML=`Version: <strong>1.0.0</strong><br>Rooms: <strong>${ROOMS.length}</strong><br>Total schedule entries: <strong>${SCHEDULE.length}</strong><br>Built for: <strong>${esc(PORTAL_SETTINGS.campusName)}</strong>`;
 }
 async function saveSettings(){
   const fields={semesterName:'set-sem',semesterStart:'set-start',semesterEnd:'set-end',campusName:'set-campus',campusAddress:'set-addr'};
@@ -1672,7 +1673,7 @@ async function submitClassModal(){
   if(!course||!code){alert('Course name and code are required.');return;}
   if(t2m(start)>=t2m(end)){alert('End time must be after start time.');return;}
   const conflict=SCHEDULE.find(s=>s.roomId===roomId&&s.day===day&&t2m(s.start)<t2m(end)&&t2m(s.end)>t2m(start)&&(!editId||s.id!==parseInt(editId)));
-  if(conflict){alert(`Room conflict! ${roomId} is booked for ${conflict.course} (${fmtT(conflict.start)}–${fmtT(conflict.end)}).`);return;}
+  if(conflict){alert(`Room conflict! ${roomId} is booked for ${esc(conflict.course)} (${fmtT(conflict.start)}–${fmtT(conflict.end)}).`);return;}
   if(editId){
     const idx=SCHEDULE.findIndex(s=>s.id===parseInt(editId));
     if(idx>=0)SCHEDULE[idx]={...SCHEDULE[idx],day,start,end,roomId,course,code,professor,program,semester};
@@ -1904,7 +1905,7 @@ async function agentExecuteConfirmed(pendingAction) {
     });
     const data = await r.json();
     agentRemoveTyping();
-    if (!r.ok) throw new Error(data.error || `Request failed (${r.status})`);
+    if (!r.ok) throw new Error(data.error || `Request failed (${esc(r.status)})`);
     await agentPersistResult(data);
     agentPending = null;
     const type = data.executed ? 'success' : (data.reply.includes('⚠️') ? 'error' : '');
@@ -2011,7 +2012,7 @@ async function staffChatCall(extra){
     body:JSON.stringify({history:staffChatHistory,operational_state:agentOperationalState(),...extra}),
   });
   const data=await r.json();
-  if(!r.ok)throw new Error(data.error||`Request failed (${r.status})`);
+  if(!r.ok)throw new Error(data.error||`Request failed (${esc(r.status)})`);
   return data;
 }
 
@@ -2102,10 +2103,10 @@ async function aiSuggest() {
       body: JSON.stringify({ query }),
     });
     const data = await r.json();
-    if (!r.ok) { box.innerHTML = `<div style="color:var(--red)">${data.error || 'Error'}</div>`; return; }
+    if (!r.ok) { box.innerHTML = `<div style="color:var(--red)">${esc(data.error || 'Error')}</div>`; return; }
 
     let html = '';
-    if (data.understood) html += `<div class="ai-understood"><i class="fa-solid fa-lightbulb"></i> ${data.understood}</div>`;
+    if (data.understood) html += `<div class="ai-understood"><i class="fa-solid fa-lightbulb"></i> ${esc(data.understood)}</div>`;
 
     if (!data.suggestions || data.suggestions.length === 0) {
       html += '<div style="color:var(--txt-muted)">No available slots found matching your request.</div>';
@@ -2116,15 +2117,15 @@ async function aiSuggest() {
           <div class="ai-slot-top">
             <span class="ai-slot-badge">${s.room_id || ''}</span>
             <span>${s.room_name || ''}</span>
-            <span style="margin-left:auto;font-size:12px;color:var(--txt-muted)">${days[s.day] || ''} ${s.start}–${s.end}</span>
+            <span style="margin-left:auto;font-size:12px;color:var(--txt-muted)">${days[s.day] || ''} ${esc(s.start)}–${esc(s.end)}</span>
           </div>
           <div class="ai-slot-reason">${s.reason || ''}</div>
         </div>`).join('');
     }
-    if (data.tips) html += `<div class="ai-tips"><i class="fa-solid fa-circle-info"></i> ${data.tips}</div>`;
+    if (data.tips) html += `<div class="ai-tips"><i class="fa-solid fa-circle-info"></i> ${esc(data.tips)}</div>`;
     box.innerHTML = html;
   } catch (e) {
-    box.innerHTML = `<div style="color:var(--red)">Request failed: ${e.message}</div>`;
+    box.innerHTML = `<div style="color:var(--red)">Request failed: ${esc(e.message)}</div>`;
   } finally {
     btn.disabled = false;
   }
@@ -2139,29 +2140,29 @@ async function aiConflicts() {
   try {
     const r = await fetch('/api/ai/conflicts');
     const data = await r.json();
-    if (!r.ok) { box.innerHTML = `<div style="color:var(--red)">${data.error || 'Error'}</div>`; return; }
+    if (!r.ok) { box.innerHTML = `<div style="color:var(--red)">${esc(data.error || 'Error')}</div>`; return; }
 
     let html = '';
     if (data.count === 0) {
       html = '<div class="ai-no-conflicts"><i class="fa-solid fa-circle-check"></i> No conflicts detected.</div>';
     } else {
       html = `<div style="font-size:12px;font-weight:600;margin-bottom:8px">
-        Found <span style="color:var(--red)">${data.critical} critical</span> ·
-        <span style="color:#ffaa00">${data.warnings} warnings</span>
+        Found <span style="color:var(--red)">${esc(data.critical)} critical</span> ·
+        <span style="color:#ffaa00">${esc(data.warnings)} warnings</span>
       </div>`;
       html += data.conflicts.map(c => `
-        <div class="ai-conflict ${c.severity}">
+        <div class="ai-conflict ${esc(c.severity)}">
           <i class="fa-solid ${c.severity === 'critical' ? 'fa-xmark crit' : 'fa-triangle-exclamation warn'}"></i>
-          <div class="ai-conflict-msg">${c.message}</div>
+          <div class="ai-conflict-msg">${esc(c.message)}</div>
         </div>`).join('');
     }
 
     if (data.aiInsights) {
-      html += `<div class="ai-insights"><strong style="color:var(--txt)">AI insights:</strong>\n${data.aiInsights}</div>`;
+      html += `<div class="ai-insights"><strong style="color:var(--txt)">AI insights:</strong>\n${esc(data.aiInsights)}</div>`;
     }
     box.innerHTML = html;
   } catch (e) {
-    box.innerHTML = `<div style="color:var(--red)">Request failed: ${e.message}</div>`;
+    box.innerHTML = `<div style="color:var(--red)">Request failed: ${esc(e.message)}</div>`;
   } finally {
     btn.disabled = false;
   }
@@ -2176,7 +2177,7 @@ async function aiAnalyze() {
   try {
     const r = await fetch('/api/ai/analyze');
     const data = await r.json();
-    if (!r.ok) { box.innerHTML = `<div style="color:var(--red)">${data.error || 'Error'}</div>`; return; }
+    if (!r.ok) { box.innerHTML = `<div style="color:var(--red)">${esc(data.error || 'Error')}</div>`; return; }
 
     let html = '';
 
@@ -2198,11 +2199,11 @@ async function aiAnalyze() {
 
     // AI analysis text
     if (data.analysis) {
-      html += `<div style="white-space:pre-wrap;font-size:12.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:10px">${data.analysis}</div>`;
+      html += `<div style="white-space:pre-wrap;font-size:12.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:10px">${esc(data.analysis)}</div>`;
     }
     box.innerHTML = html;
   } catch (e) {
-    box.innerHTML = `<div style="color:var(--red)">Request failed: ${e.message}</div>`;
+    box.innerHTML = `<div style="color:var(--red)">Request failed: ${esc(e.message)}</div>`;
   } finally {
     btn.disabled = false;
   }
