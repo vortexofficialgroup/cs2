@@ -100,6 +100,156 @@
 
 .ai-no-conflicts { color: #22c55e; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .ai-insights { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 10px; font-size: 12px; color: var(--txt-muted); white-space: pre-wrap; }
+
+/* ── CampuSyncer Agent ── */
+.agent-section {
+  margin-top: 28px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.agent-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(135deg, #1a0a3e 0%, #0f172a 100%);
+}
+.agent-avatar {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #fff;
+  flex-shrink: 0;
+}
+.agent-name { font-size: 15px; font-weight: 700; color: #fff; }
+.agent-status { font-size: 11px; color: #a78bfa; display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+.agent-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; display: inline-block; }
+
+.agent-examples {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.agent-ex-label { font-size: 11px; color: var(--txt-muted); font-weight: 600; }
+.agent-chip {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  color: var(--txt-muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.agent-chip:hover { border-color: #7c3aed; color: #a78bfa; }
+
+.agent-chat {
+  padding: 16px;
+  min-height: 200px;
+  max-height: 420px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.agent-msg { display: flex; }
+.agent-msg--bot { justify-content: flex-start; }
+.agent-msg--user { justify-content: flex-end; }
+
+.agent-bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.agent-msg--bot .agent-bubble {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--txt);
+  border-bottom-left-radius: 4px;
+}
+.agent-msg--user .agent-bubble {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.agent-bubble.confirm {
+  background: #ffaa0018;
+  border: 1px solid #ffaa0066;
+}
+.agent-bubble.success {
+  background: #22c55e18;
+  border: 1px solid #22c55e66;
+}
+.agent-bubble.error {
+  background: #ff444418;
+  border: 1px solid #ff444466;
+}
+
+.agent-confirm-btns { display: flex; gap: 8px; margin-top: 10px; }
+.agent-confirm-btns button {
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+.agent-confirm-btns .btn-yes { background: #7c3aed; color: #fff; }
+.agent-confirm-btns .btn-no  { background: var(--line); color: var(--txt-muted); }
+
+.agent-typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
+.agent-typing span {
+  width: 6px; height: 6px;
+  background: #7c3aed;
+  border-radius: 50%;
+  animation: bounce .9s infinite;
+}
+.agent-typing span:nth-child(2) { animation-delay: .15s; }
+.agent-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+.agent-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+}
+.agent-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--txt);
+  outline: none;
+}
+.agent-input:focus { border-color: #7c3aed; }
+.btn-agent-send {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: opacity .15s;
+}
+.btn-agent-send:hover { opacity: .85; }
+.btn-agent-send:disabled { opacity: .4; cursor: wait; }
 </style>
 </head>
 <body>
@@ -406,6 +556,42 @@
           </div>
 
         </div><!-- /ai-cards-row -->
+
+        <!-- ── CampuSyncer Agent Chat ── -->
+        <div class="agent-section">
+          <div class="agent-header">
+            <div class="agent-avatar"><i class="fa-solid fa-robot"></i></div>
+            <div>
+              <div class="agent-name">CampuSyncer Agent</div>
+              <div class="agent-status"><span class="agent-dot"></span> Ready · can read &amp; write your schedule</div>
+            </div>
+          </div>
+
+          <div class="agent-examples">
+            <span class="agent-ex-label">Try:</span>
+            <button class="agent-chip" onclick="agentChip(this)">Cancel all Thursday classes</button>
+            <button class="agent-chip" onclick="agentChip(this)">Who can cover Software Engineering Monday 10am?</button>
+            <button class="agent-chip" onclick="agentChip(this)">Move R101 Monday 9am class to R202</button>
+            <button class="agent-chip" onclick="agentChip(this)">Check capacity violations</button>
+            <button class="agent-chip" onclick="agentChip(this)">Show all classes on Wednesday</button>
+          </div>
+
+          <div class="agent-chat" id="agent-chat">
+            <div class="agent-msg agent-msg--bot">
+              <div class="agent-bubble">Hey! I'm CampuSyncer. Tell me what you need — I can add, edit, or cancel classes, find substitutes, check conflicts, and answer questions about your schedule.</div>
+            </div>
+          </div>
+
+          <div class="agent-input-row">
+            <input id="agent-input" class="agent-input" type="text"
+              placeholder='e.g. "Add Dr. Ahmed to Thursday 2pm in LAB-A for Data Structures"'
+              onkeydown="if(event.key==='Enter')agentSend()" />
+            <button class="btn-agent-send" onclick="agentSend()" id="agent-send-btn">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+        </div><!-- /agent-section -->
+
       </div><!-- /ai-panel -->
     </div><!-- /at-ai -->
 
@@ -1236,6 +1422,161 @@ async function addProf(){
 // ═══════════════════════════════════════════════
 let toastTmr;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTmr);toastTmr=setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ═══════════════════════════════════════════════
+// CAMPUSYNCER AGENT
+// ═══════════════════════════════════════════════
+
+let agentHistory = [];
+let agentPending = null; // pending action awaiting confirmation
+
+function agentChip(el) {
+  document.getElementById('agent-input').value = el.textContent.trim();
+  agentSend();
+}
+
+function agentAppend(role, content, type = '') {
+  const chat = document.getElementById('agent-chat');
+  const div  = document.createElement('div');
+  div.className = `agent-msg agent-msg--${role}`;
+
+  const bubble = document.createElement('div');
+  bubble.className = `agent-bubble${type ? ' '+type : ''}`;
+  bubble.textContent = content;
+  div.appendChild(bubble);
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return bubble;
+}
+
+function agentTyping() {
+  const chat = document.getElementById('agent-chat');
+  const div  = document.createElement('div');
+  div.className = 'agent-msg agent-msg--bot';
+  div.id = 'agent-typing-indicator';
+  div.innerHTML = '<div class="agent-typing"><span></span><span></span><span></span></div>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function agentRemoveTyping() {
+  const el = document.getElementById('agent-typing-indicator');
+  if (el) el.remove();
+}
+
+function agentConfirmBubble(message, pendingAction) {
+  const chat   = document.getElementById('agent-chat');
+  const div    = document.createElement('div');
+  div.className = 'agent-msg agent-msg--bot';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'agent-bubble confirm';
+  bubble.textContent = message;
+
+  const btns = document.createElement('div');
+  btns.className = 'agent-confirm-btns';
+
+  const yes = document.createElement('button');
+  yes.className = 'btn-yes';
+  yes.textContent = '✓ Confirm';
+  yes.onclick = () => {
+    btns.remove();
+    agentExecuteConfirmed(pendingAction);
+  };
+
+  const no = document.createElement('button');
+  no.className = 'btn-no';
+  no.textContent = '✕ Cancel';
+  no.onclick = () => {
+    btns.remove();
+    agentAppend('bot', 'Cancelled. What else can I help with?');
+    agentPending = null;
+  };
+
+  btns.appendChild(yes);
+  btns.appendChild(no);
+  bubble.appendChild(btns);
+  div.appendChild(bubble);
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function agentExecuteConfirmed(pendingAction) {
+  agentTyping();
+  try {
+    const r = await fetch('/api/ai/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: 'confirmed',
+        history: agentHistory,
+        pending_action: pendingAction,
+      }),
+    });
+    agentRemoveTyping();
+    const data = await r.json();
+    agentPending = null;
+    const type = data.executed ? 'success' : (data.reply.includes('⚠️') ? 'error' : '');
+    agentAppend('bot', data.reply, type);
+    agentHistory.push({ role: 'assistant', content: data.reply });
+    // Refresh schedule table if something changed
+    if (data.executed && ['create_entry','update_entry','delete_entry','delete_multiple'].includes(data.action)) {
+      if (typeof renderAdmSchedule === 'function') renderAdmSchedule();
+    }
+  } catch (e) {
+    agentRemoveTyping();
+    agentAppend('bot', '⚠️ Request failed: ' + e.message, 'error');
+  }
+}
+
+async function agentSend() {
+  const input = document.getElementById('agent-input');
+  const btn   = document.getElementById('agent-send-btn');
+  const msg   = input.value.trim();
+  if (!msg) return;
+
+  input.value = '';
+  btn.disabled = true;
+
+  agentAppend('user', msg);
+  agentHistory.push({ role: 'user', content: msg });
+  agentTyping();
+
+  try {
+    const r = await fetch('/api/ai/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, history: agentHistory }),
+    });
+    agentRemoveTyping();
+    const data = await r.json();
+
+    if (!r.ok) {
+      agentAppend('bot', '⚠️ ' + (data.error || 'Error'), 'error');
+      return;
+    }
+
+    agentHistory.push({ role: 'assistant', content: data.reply });
+
+    if (data.confirm_required && data.pending_action) {
+      agentPending = data.pending_action;
+      agentAppend('bot', data.reply);
+      agentConfirmBubble(data.confirm_message || 'Are you sure you want to do this?', data.pending_action);
+    } else {
+      const type = data.executed ? 'success' : (data.reply && data.reply.includes('⚠️') ? 'error' : '');
+      agentAppend('bot', data.reply, type);
+      if (data.executed && ['create_entry','update_entry','delete_entry','delete_multiple'].includes(data.action)) {
+        if (typeof renderAdmSchedule === 'function') renderAdmSchedule();
+      }
+    }
+  } catch (e) {
+    agentRemoveTyping();
+    agentAppend('bot', '⚠️ Request failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    input.focus();
+  }
+}
 
 // ═══════════════════════════════════════════════
 // AI ASSISTANT

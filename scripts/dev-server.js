@@ -42,6 +42,7 @@ const ROUTES = {
   'POST /api/ai/suggest':             require('../api/ai/suggest'),
   'GET /api/ai/analyze':              require('../api/ai/analyze'),
   'GET /api/ai/conflicts':            require('../api/ai/conflicts'),
+  'POST /api/ai/agent':               require('../api/ai/agent'),
 };
 
 // ─── MIME types ───────────────────────────────────────────────────────────
