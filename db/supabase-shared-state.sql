@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS public.student_users (
 
 ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS photo TEXT NOT NULL DEFAULT '';
 ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS program TEXT NOT NULL DEFAULT '';
 
 ALTER TABLE public.student_users ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.student_users FROM PUBLIC, anon, authenticated;

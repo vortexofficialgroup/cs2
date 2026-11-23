@@ -16,6 +16,7 @@ GRANT SELECT, INSERT, UPDATE ON TABLE public.student_users TO service_role;
 
 ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS photo TEXT NOT NULL DEFAULT '';
 ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS program TEXT NOT NULL DEFAULT '';
 
 CREATE TABLE IF NOT EXISTS public.sso_staff (
   email TEXT PRIMARY KEY,

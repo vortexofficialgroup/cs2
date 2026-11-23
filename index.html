@@ -254,6 +254,15 @@
       <div id="cs-signup-form" style="display:none">
         <div class="cs-field"><label>Full name</label><input id="cs-name" type="text" placeholder="Your name" autocomplete="name"></div>
         <div class="cs-field"><label>University email</label><input id="cs-signup-email" type="email" placeholder="you@ue-germany.de" autocomplete="email"></div>
+        <div class="cs-field"><label>Program</label>
+          <select id="cs-signup-program">
+            <option value="">Select your program…</option>
+            <option value="Bachelor">Bachelor</option>
+            <option value="Master">Master</option>
+            <option value="MBA">MBA</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
         <div class="cs-field"><label>Password (8+ characters)</label><input id="cs-signup-password" type="password" placeholder="Choose a password" autocomplete="new-password"></div>
         <label class="cs-remember"><input type="checkbox" id="cs-signup-remember"> Stay signed in on this device</label>
         <button class="cs-submit" id="cs-signup-btn" onclick="csStudentRegister()">Create account & continue</button>
@@ -293,6 +302,15 @@
       </label>
     </div>
     <div class="cs-field"><label>Name</label><input id="cs-account-name-input" type="text" maxlength="80" autocomplete="name"></div>
+    <div class="cs-field" id="cs-account-program-wrap"><label>Program</label>
+      <select id="cs-account-program">
+        <option value="">Select your program…</option>
+        <option value="Bachelor">Bachelor</option>
+        <option value="Master">Master</option>
+        <option value="MBA">MBA</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
     <div class="cs-field"><label>Status</label><input id="cs-account-status" type="text" maxlength="120" placeholder="e.g. Available, On sick leave…"></div>
     <div class="cs-error" id="cs-account-error"></div>
     <button class="cs-submit" id="cs-account-save" onclick="csSaveAccount()"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
@@ -317,6 +335,29 @@ function updateClock(){
   const ds=document.getElementById('day-str');
   if(ds){const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];const months=['January','February','March','April','May','June','July','August','September','October','November','December'];ds.textContent=`${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;}
 }
+
+function effProf(s){return activeOverride(s)||s.professor;}
+function effProfHtml(s){const o=activeOverride(s);return o?`<span style="color:#2563EB;font-weight:600">${o}</span> <span style="font-size:10px;color:var(--txt-muted)">(sub)</span>`:s.professor;}
+function csProgramCat(p){
+  const s=String(p||'').toLowerCase().trim();
+  if(!s)return '';
+  if(s.includes('mba'))return 'mba';
+  if(s.startsWith('ma ')||s.startsWith('msc')||s.includes('master'))return 'master';
+  if(s.startsWith('ba ')||s.startsWith('bsc')||s.includes('bachelor'))return 'bachelor';
+  if(s==='other')return 'other';
+  return s;
+}
+function csCanSeeEntry(e){
+  if(!csStudent||csStudent.role!=='student')return true;
+  const sp=String(csStudent.program||'').trim();
+  if(!sp)return true;
+  const ep=String(e.program||'').trim();
+  if(!ep||ep.toLowerCase()==='all programs')return true;
+  const sc=csProgramCat(sp), ec=csProgramCat(ep);
+  if(sc==='other')return true;
+  return sc===ec;
+}
+function csSchedule(){return SCHEDULE.filter(csCanSeeEntry);}
 
 // ══════════════════════════════════════════════════
 // ANNOUNCEMENTS
@@ -361,12 +402,13 @@ function renderDash(){
   document.getElementById('st-free').textContent=free;
   document.getElementById('st-occ').textContent=occ;
   document.getElementById('st-soon').textContent=soon;
-  document.getElementById('st-today').textContent=SCHEDULE.filter(s=>s.day===today).length;
-  const nowItems=SCHEDULE.filter(s=>s.day===today&&t2m(s.start)<=min&&t2m(s.end)>min);
+  const sched=csSchedule();
+  document.getElementById('st-today').textContent=sched.filter(s=>s.day===today).length;
+  const nowItems=sched.filter(s=>s.day===today&&t2m(s.start)<=min&&t2m(s.end)>min);
   const nowEl=document.getElementById('now-list');
   nowEl.innerHTML=nowItems.length===0?'<div class="empty-state"><i class="fa-regular fa-clock"></i>No classes in session right now</div>'
     :nowItems.map(e=>`<div class="class-item" onclick="openClass(${e.id})"><div class="ci-dot occ"></div><div class="ci-info"><div class="ci-name">${e.course}</div><div class="ci-meta">${effProfHtml(e)} · ${fmtT(e.start)}–${fmtT(e.end)} · ends in ${t2m(e.end)-min}m</div></div><div class="ci-room">${e.roomId}</div></div>`).join('');
-  const nxt=SCHEDULE.filter(s=>s.day===today&&t2m(s.start)>min).sort((a,b)=>t2m(a.start)-t2m(b.start)).slice(0,5);
+  const nxt=sched.filter(s=>s.day===today&&t2m(s.start)>min).sort((a,b)=>t2m(a.start)-t2m(b.start)).slice(0,5);
   const nxtEl=document.getElementById('next-list');
   nxtEl.innerHTML=nxt.length===0?'<div class="empty-state"><i class="fa-regular fa-calendar"></i>No more classes today</div>'
     :nxt.map(e=>{const diff=t2m(e.start)-min;return`<div class="class-item" onclick="openClass(${e.id})"><div class="ci-dot ${diff<=15?'soon':'free'}"></div><div class="ci-info"><div class="ci-name">${e.course}</div><div class="ci-meta">${effProfHtml(e)} · ${fmtT(e.start)}${diff<=90?` (in ${diff}m)`:''}</div></div><div class="ci-room">${e.roomId}</div></div>`;}).join('');
@@ -695,15 +737,15 @@ function openRoom(id){
     sb.className='m-status free';
     sb.innerHTML=`<div class="st-title"><i class="fa-solid fa-circle-check"></i> Free Now — available to use</div>`;
   }
-  const nxtEntry=SCHEDULE.filter(s=>s.roomId===id&&s.day===today&&t2m(s.start)>min).sort((a,b)=>t2m(a.start)-t2m(b.start))[0];
+  const nxtEntry=sched.filter(s=>s.roomId===id&&s.day===today&&t2m(s.start)>min).sort((a,b)=>t2m(a.start)-t2m(b.start))[0];
   const ne=document.getElementById('m-next');
   ne.style.display='';
   ne.innerHTML=nxtEntry?`<div class="m-next-lbl">Next class today:</div><div>${fmtT(nxtEntry.start)} · <strong>${nxtEntry.code}</strong> · ${effProfHtml(nxtEntry)}</div>`:'<div style="color:var(--txt-muted);font-size:12px">No more classes today in this room</div>';
-  const todays=SCHEDULE.filter(s=>s.roomId===id&&s.day===today).sort((a,b)=>t2m(a.start)-t2m(b.start));
+  const todays=sched.filter(s=>s.roomId===id&&s.day===today).sort((a,b)=>t2m(a.start)-t2m(b.start));
   const ms=document.getElementById('m-sched');
   ms.innerHTML=todays.length===0?'<div style="color:var(--txt-muted);font-size:12.5px;padding:4px 0">No classes scheduled today</div>'
     :todays.map(e=>{const isNow=t2m(e.start)<=min&&t2m(e.end)>min;return`<div class="m-srow"><div class="ms-day">${fmtT(e.start)}</div><div class="ms-time">– ${fmtT(e.end)}</div><div class="ms-course">${e.code}: ${e.course}</div>${isNow?'<div class="ms-now">NOW</div>':''}</div>`;}).join('');
-  const weekly=SCHEDULE.filter(s=>s.roomId===id&&s.day!==today).sort((a,b)=>a.day-b.day||t2m(a.start)-t2m(b.start));
+  const weekly=sched.filter(s=>s.roomId===id&&s.day!==today).sort((a,b)=>a.day-b.day||t2m(a.start)-t2m(b.start));
   const wt=document.getElementById('m-week-title'),ws=document.getElementById('m-week-sched');
   if(weekly.length>0){wt.style.display='';ws.innerHTML=weekly.map(e=>`<div class="m-srow"><div class="ms-day">${DAY_SHORT[e.day]}</div><div class="ms-time">${fmtT(e.start)}–${fmtT(e.end)}</div><div class="ms-course">${e.code}: ${e.course}</div></div>`).join('');}
   else{wt.style.display='none';ws.innerHTML='';}
@@ -723,7 +765,7 @@ function renderCourseSearch(){
   const {min}=getNow(),today=getToday();
   const cont=document.getElementById('cs-results');
   if(!q){cont.innerHTML='<div class="empty-state" style="margin-top:40px"><i class="fa-solid fa-magnifying-glass"></i>Start typing to find a course</div>';return;}
-  const matches=SCHEDULE.filter(s=>s.course.toLowerCase().includes(q)||s.code.toLowerCase().includes(q)||s.professor.toLowerCase().includes(q)||effProf(s).toLowerCase().includes(q)||s.program.toLowerCase().includes(q));
+  const matches=csSchedule().filter(s=>s.course.toLowerCase().includes(q)||s.code.toLowerCase().includes(q)||s.professor.toLowerCase().includes(q)||effProf(s).toLowerCase().includes(q)||s.program.toLowerCase().includes(q));
   const grouped={};
   matches.forEach(s=>{if(!grouped[s.code])grouped[s.code]={code:s.code,course:s.course,professor:effProfHtml(s),program:s.program,entries:[]};grouped[s.code].entries.push(s);});
   const courses=Object.values(grouped);
@@ -756,7 +798,7 @@ function renderSchedule(){
 function renderSchedTable(){
   const {min}=getNow(),today=getToday(),isToday=curSchedDay===today;
   document.getElementById('sched-day-lbl').textContent=`${DAY_NAMES[curSchedDay]}${isToday?' (today)':''}`;
-  const entries=SCHEDULE.filter(s=>s.day===curSchedDay).sort((a,b)=>t2m(a.start)-t2m(b.start));
+  const entries=csSchedule().filter(s=>s.day===curSchedDay).sort((a,b)=>t2m(a.start)-t2m(b.start));
   const tbody=document.getElementById('sched-body');
   tbody.innerHTML=entries.length===0?'<tr><td colspan="6" class="empty-state">No classes on this day</td></tr>'
     :entries.map(e=>{
@@ -774,7 +816,7 @@ function closeClass(ev,force){
   if(force||(ev&&ev.target===document.getElementById('class-ov'))){document.getElementById('class-ov').classList.remove('open');curClassId=null;}
 }
 function renderClass(){
-  const e=SCHEDULE.find(x=>x.id===curClassId);if(!e)return;
+  const e=csSchedule().find(x=>x.id===curClassId)||SCHEDULE.find(x=>x.id===curClassId);if(!e)return;
   const room=getRoom(e.roomId)||{id:e.roomId,capacity:0,name:e.roomId};
   const {min}=getNow(),today=getToday();
   const s=t2m(e.start),en=t2m(e.end),dur=en-s;
@@ -806,7 +848,7 @@ function quickSearch(q){
   const dd=document.getElementById('qs-dropdown');
   if(!q.trim()){dd.style.display='none';return;}
   const ql=q.toLowerCase();
-  const cs=[...new Map(SCHEDULE.filter(s=>s.course.toLowerCase().includes(ql)||s.code.toLowerCase().includes(ql)).map(s=>[s.code,s])).values()].slice(0,4);
+  const cs=[...new Map(csSchedule().filter(s=>s.course.toLowerCase().includes(ql)||s.code.toLowerCase().includes(ql)).map(s=>[s.code,s])).values()].slice(0,4);
   const rs=ROOMS.filter(r=>r.name.toLowerCase().includes(ql)||r.id.toLowerCase().includes(ql)).slice(0,3);
   if(!cs.length&&!rs.length){dd.style.display='none';return;}
   let h='';
@@ -1156,7 +1198,7 @@ async function cbSend() {
   try {
     // Build schedule context from page data
     const scheduleCtx = typeof SCHEDULE !== 'undefined'
-      ? SCHEDULE.slice(0, 80).map(s =>
+      ? csSchedule().slice(0, 80).map(s =>
           `day${s.day} ${s.start}-${s.end} room:${s.roomId} "${s.course}" prof:${s.professor} program:${s.program}`
         ).join('\n')
       : 'Schedule data not available.';
@@ -1317,6 +1359,11 @@ function csMsErrorBox(flow){return flow==='student'?'cs-student-error':'cs-staff
 async function csMicrosoftLogin(flow){
   csClearErrors();
   if(!csMsClient){csError(csMsErrorBox(flow),'Microsoft sign-in is not available right now.');return;}
+  if(flow==='student'){
+    const program=document.getElementById('cs-signup-program').value;
+    if(!program){csSetTab('student');csToggleSignup(true);csError('cs-student-error','Select your program before signing in with Microsoft.');return;}
+    sessionStorage.setItem('csMsProgram',program);
+  }
   sessionStorage.setItem('csMsFlow',flow==='student'?'student':'staff');
   const {error}=await csMsClient.auth.signInWithOAuth({
     provider:'azure',
@@ -1336,7 +1383,9 @@ async function csHandleMicrosoftReturn(){
   try{
     if(!accessToken)throw new Error('Microsoft sign-in failed: '+hashError);
     if(flow==='student'){
-      const result=await csFetch('/api/student/microsoft',{method:'POST',body:JSON.stringify({accessToken})});
+      const program=sessionStorage.getItem('csMsProgram')||'';
+      sessionStorage.removeItem('csMsProgram');
+      const result=await csFetch('/api/student/microsoft',{method:'POST',body:JSON.stringify({accessToken,program})});
       csStoreToken(result.token,csStudentRemember());
       csStudent=result.user;
       csAccountUser=result.user;
@@ -1391,13 +1440,14 @@ async function csStudentLogin(){
 }
 async function csStudentRegister(){
   csClearErrors();
+  const name=document.getElementById('cs-name').value.trim();
+  const email=document.getElementById('cs-signup-email').value.trim();
+  const password=document.getElementById('cs-signup-password').value;
+  const program=document.getElementById('cs-signup-program').value;
+  if(name.length<2||!email||password.length<8||!program){csError('cs-student-error','Enter your name, email, program, and a password with at least 8 characters.');return;}
   const btn=document.getElementById('cs-signup-btn');btn.disabled=true;
   try{
-    const data=await csFetch('/api/student/register',{method:'POST',body:JSON.stringify({
-      name:document.getElementById('cs-name').value.trim(),
-      email:document.getElementById('cs-signup-email').value.trim(),
-      password:document.getElementById('cs-signup-password').value,
-    })});
+    const data=await csFetch('/api/student/register',{method:'POST',body:JSON.stringify({name,email,password,program})});
     csStoreToken(data.token,csStudentRemember());
     csStudent=data.user;
     csAccountUser=data.user;
@@ -1443,6 +1493,11 @@ function csOpenAccount(){
   csClearErrors();
   document.getElementById('cs-account-name-input').value=csAccountName();
   document.getElementById('cs-account-status').value=csAccountUser.status||'';
+  const progWrap=document.getElementById('cs-account-program-wrap');
+  const progSel=document.getElementById('cs-account-program');
+  const isStudent=csAccountUser.role==='student';
+  if(progWrap)progWrap.style.display=isStudent?'':'none';
+  if(progSel)progSel.value=isStudent?(csAccountUser.program||''):'';
   csAccountPhotoData=csAccountUser.photo||'';
   csSetPhotoPreview('cs-account-photo','cs-account-photo-icon',csAccountPhotoData);
   document.getElementById('cs-account-overlay').classList.add('open');
@@ -1485,14 +1540,16 @@ async function csSaveAccount(){
   const btn=document.getElementById('cs-account-save');btn.disabled=true;
   const isStudent=csAccountUser.role==='student';
   try{
+    const payload={
+      name:document.getElementById('cs-account-name-input').value.trim(),
+      status:document.getElementById('cs-account-status').value.trim(),
+      photo:csAccountPhotoData,
+    };
+    if(isStudent)payload.program=document.getElementById('cs-account-program').value;
     const data=await csFetch(isStudent?'/api/student/account':'/api/auth/account',{
       method:'PUT',
       headers:isStudent?{'x-student-token':csSavedToken()||''}:{},
-      body:JSON.stringify({
-        name:document.getElementById('cs-account-name-input').value.trim(),
-        status:document.getElementById('cs-account-status').value.trim(),
-        photo:csAccountPhotoData,
-      }),
+      body:JSON.stringify(payload),
     });
     if(isStudent){
       csStudent=data.user;csAccountUser=data.user;
@@ -1501,6 +1558,7 @@ async function csSaveAccount(){
       csAccountUser=data.user;
     }
     csRenderAccount();csCloseAccount();showToast('Account updated ✓');
+    if(isStudent){renderDashboard();if(curView==='schedule')renderSchedTable();}
   }catch(err){csError('cs-account-error',err.message);}
   finally{btn.disabled=false;}
 }
