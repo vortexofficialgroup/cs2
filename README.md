@@ -7,11 +7,11 @@
 <br/>
 
 ![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?style=for-the-badge&logo=node.js&logoColor=white)
-![Express](https://img.shields.io/badge/Express-4.x-000000?style=for-the-badge&logo=express&logoColor=white)
+![Vercel Functions](https://img.shields.io/badge/Vercel-Functions-000000?style=for-the-badge&logo=vercel&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-![Deployed on Vultr](https://img.shields.io/badge/Deployed%20on-Vultr-007BFC?style=for-the-badge&logo=vultr&logoColor=white)
+![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 
 <br/>
 
@@ -102,77 +102,16 @@ npm start
 
 ---
 
-## ☁️ Deploying to Vultr
+## ☁️ Deploying to Vercel
 
-### 1 — Create your VPS
-Go to [Vultr](https://vultr.com) → New Instance → Cloud Compute → Ubuntu 22.04 LTS → $6/mo plan.
+The production project is connected to this GitHub repository. Push to `main`
+to trigger a Vercel deployment; deployment status is available in the Vercel
+project dashboard.
 
-### 2 — Server setup
-
-```bash
-# SSH in
-ssh root@YOUR_VULTR_IP
-
-# Update & install dependencies
-apt update && apt upgrade -y
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt install -y nodejs git nginx
-npm install -g pm2
-```
-
-### 3 — Clone & run
-
-```bash
-cd /var/www
-git clone https://github.com/astrax-gif/Ue-portal.git
-cd Ue-portal/backend
-npm install
-
-# Start with PM2 (stays alive after logout)
-pm2 start server.js --name ue-portal
-pm2 save && pm2 startup
-```
-
-### 4 — Configure Nginx
-
-```bash
-nano /etc/nginx/sites-available/ue-portal
-```
-
-Paste:
-
-```nginx
-server {
-    listen 80;
-    server_name YOUR_VULTR_IP;
-
-    root /var/www/Ue-portal/frontend;
-    index index.html;
-
-    location /api/ {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-```bash
-ln -s /etc/nginx/sites-available/ue-portal /etc/nginx/sites-enabled/
-nginx -t && systemctl restart nginx
-
-# Open firewall
-ufw allow OpenSSH
-ufw allow 'Nginx Full'
-ufw enable
-```
-
-Visit `(http://78.141.194.82/)` — portal is live 🎉
+For shared admin state, run [`db/supabase-shared-state.sql`](db/supabase-shared-state.sql)
+in your Supabase project's SQL Editor. Add `SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY` to the Vercel project's Production environment
+variables, then redeploy. Keep the service-role key server-only.
 
 ---
 
@@ -191,10 +130,9 @@ Visit `(http://78.141.194.82/)` — portal is live 🎉
 | Layer | Technology |
 |---|---|
 | Frontend | HTML5, CSS3, Vanilla JavaScript |
-| Backend | Node.js, Express.js |
+| Backend | Node.js serverless functions |
 | Data | JSON (timetable seed) |
-| Hosting | Vultr Cloud Compute |
-| Web Server | Nginx + PM2 |
+| Hosting | Vercel |
 
 ---
 
