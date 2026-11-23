@@ -12,11 +12,14 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="styles.css?v=20261120">
 <style>
+/* AI panel uses the same palette as the rest of the portal */
+:root { --card:#fff; --line:var(--border); }
+
 /* ── AI Panel ── */
 .ai-panel { padding: 0 0 32px; }
 .ai-panel-header { margin-bottom: 24px; }
 .ai-brand { font-size: 18px; font-weight: 700; color: var(--txt); display: flex; align-items: center; gap: 8px; }
-.ai-brand i { color: #7c3aed; }
+.ai-brand i { color: var(--red); }
 .ai-subtitle { font-size: 12px; color: var(--txt-muted); margin-top: 4px; }
 
 .ai-cards-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
@@ -30,7 +33,7 @@
   flex-direction: column;
   gap: 10px;
 }
-.ai-card-icon { font-size: 20px; color: #7c3aed; }
+.ai-card-icon { font-size: 20px; color: var(--red); }
 .ai-card-title { font-size: 15px; font-weight: 700; color: var(--txt); }
 .ai-card-desc { font-size: 12.5px; color: var(--txt-muted); line-height: 1.5; }
 
@@ -45,10 +48,10 @@
   color: var(--txt);
   outline: none;
 }
-.ai-input:focus { border-color: #7c3aed; }
+.ai-input:focus { border-color: var(--red); }
 
 .btn-ai {
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  background: linear-gradient(135deg, var(--red), var(--red-dk));
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -84,7 +87,7 @@
 /* Suggestion cards */
 .ai-slot { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
 .ai-slot-top { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; }
-.ai-slot-badge { background: #7c3aed22; color: #7c3aed; border-radius: 5px; padding: 2px 7px; font-size: 11px; font-weight: 700; }
+.ai-slot-badge { background: var(--red-bg); color: var(--red); border-radius: 5px; padding: 2px 7px; font-size: 11px; font-weight: 700; }
 .ai-slot-reason { font-size: 11.5px; color: var(--txt-muted); margin-top: 4px; }
 
 /* Conflict items */
@@ -95,7 +98,7 @@
 .ai-conflict i.warn { color: #ffaa00; }
 .ai-conflict-msg { font-size: 12.5px; }
 
-.ai-understood { background: #7c3aed18; border: 1px solid #7c3aed44; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #a78bfa; margin-bottom: 10px; }
+.ai-understood { background: var(--red-bg); border: 1px solid #FECACA; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #B91C1C; margin-bottom: 10px; }
 .ai-tips { font-size: 11.5px; color: var(--txt-muted); margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px; }
 
 .ai-no-conflicts { color: #22c55e; font-weight: 600; display: flex; align-items: center; gap: 6px; }
@@ -115,32 +118,32 @@
   gap: 12px;
   padding: 16px 20px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(135deg, #1a0a3e 0%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--red-dk) 0%, #111827 100%);
 }
 .agent-header-copy { min-width: 0; flex: 1; }
 .agent-model-select {
   margin-left: auto;
   min-width: 170px;
   padding: 8px 30px 8px 10px;
-  border: 1px solid rgba(167,139,250,.55);
+  border: 1px solid rgba(255,255,255,.25);
   border-radius: 8px;
-  background: #17132b;
-  color: #e9e7ff;
+  background: #2A0D14;
+  color: #fff;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
-.agent-model-select:focus { outline: 2px solid #7c3aed; outline-offset: 2px; }
+.agent-model-select:focus { outline: 2px solid var(--red); outline-offset: 2px; }
 .agent-avatar {
   width: 40px; height: 40px;
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  background: linear-gradient(135deg, var(--red), var(--red-dk));
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 18px; color: #fff;
   flex-shrink: 0;
 }
 .agent-name { font-size: 15px; font-weight: 700; color: #fff; }
-.agent-status { font-size: 11px; color: #a78bfa; display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+.agent-status { font-size: 11px; color: #FCA5A5; display: flex; align-items: center; gap: 5px; margin-top: 2px; }
 .agent-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; display: inline-block; }
 
 .agent-examples {
@@ -162,7 +165,7 @@
   cursor: pointer;
   transition: all .15s;
 }
-.agent-chip:hover { border-color: #7c3aed; color: #a78bfa; }
+.agent-chip:hover { border-color: var(--red); color: #FCA5A5; }
 
 .agent-chat {
   padding: 16px;
@@ -192,7 +195,7 @@
   border-bottom-left-radius: 4px;
 }
 .agent-msg--user .agent-bubble {
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  background: linear-gradient(135deg, var(--red), var(--red-dk));
   color: #fff;
   border-bottom-right-radius: 4px;
 }
@@ -219,13 +222,13 @@
   cursor: pointer;
   border: none;
 }
-.agent-confirm-btns .btn-yes { background: #7c3aed; color: #fff; }
+.agent-confirm-btns .btn-yes { background: var(--red); color: #fff; }
 .agent-confirm-btns .btn-no  { background: var(--line); color: var(--txt-muted); }
 
 .agent-typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
 .agent-typing span {
   width: 6px; height: 6px;
-  background: #7c3aed;
+  background: var(--red);
   border-radius: 50%;
   animation: bounce .9s infinite;
 }
@@ -249,10 +252,10 @@
   color: var(--txt);
   outline: none;
 }
-.agent-input:focus { border-color: #7c3aed; }
+.agent-input:focus { border-color: var(--red); }
 .btn-agent-send {
   width: 40px; height: 40px;
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  background: linear-gradient(135deg, var(--red), var(--red-dk));
   border: none;
   border-radius: 10px;
   color: #fff;
@@ -335,7 +338,7 @@
       <div class="a-tab" data-at="reports" data-permission="reports" onclick="setTab('reports')"><i class="fa-solid fa-chart-bar"></i> Reports</div>
       <div class="a-tab" data-at="settings" data-permission="admin" onclick="setTab('settings')"><i class="fa-solid fa-gear"></i> Settings</div>
       <div class="a-tab" data-at="staff" data-permission="admin" onclick="setTab('staff')"><i class="fa-solid fa-user-shield"></i> Staff Access</div>
-      <div class="a-tab" data-at="ai" data-permission="admin" onclick="setTab('ai')"><i class="fa-solid fa-brain"></i> AI Assistant</div>
+      <div class="a-tab" data-at="ai" data-permission="ai_reports" onclick="setTab('ai')"><i class="fa-solid fa-brain"></i> AI Assistant</div>
     </div>
 
     <!-- ══ TAB: SCHEDULE ══ -->
@@ -505,6 +508,7 @@
                   <label><input type="checkbox" value="professors"> Manage professors</label>
                   <label><input type="checkbox" value="announcements"> Manage announcements</label>
                   <label><input type="checkbox" value="reports"> View reports</label>
+                  <label><input type="checkbox" value="ai_reports"> View AI reports (read-only)</label>
                 </div>
               </div>
               <button class="btn btn-red btn-sm" onclick="createStaffAccount()"><i class="fa-solid fa-user-plus"></i> Create account</button>
@@ -526,13 +530,14 @@
         <div class="ai-panel-header">
           <div class="ai-brand"><i class="fa-solid fa-brain"></i> AI Admin Assistant</div>
           <div class="ai-subtitle">Powered by Gemini (free tier) · Understands your campus data in real time</div>
+          <div id="ai-readonly-note" class="ai-subtitle" style="display:none;color:var(--red);font-weight:600"><i class="fa-solid fa-lock"></i> Read-only access · reports only</div>
         </div>
 
         <!-- 3 feature cards -->
         <div class="ai-cards-row">
 
           <!-- CARD 1: Natural language suggest -->
-          <div class="ai-card">
+          <div class="ai-card" id="ai-find-card">
             <div class="ai-card-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
             <div class="ai-card-title">Find a Room</div>
             <div class="ai-card-desc">Describe what you need in plain English. AI finds available slots instantly.</div>
@@ -572,7 +577,7 @@
         </div><!-- /ai-cards-row -->
 
         <!-- ── CampuSyncer Agent Chat ── -->
-        <div class="agent-section">
+        <div class="agent-section" id="ai-agent-section">
           <div class="agent-header">
             <div class="agent-avatar"><i class="fa-solid fa-robot"></i></div>
             <div class="agent-header-copy">
@@ -585,7 +590,10 @@
               <option value="gemini-3.8-flash">Gemini 3.8 Flash (free)</option>
               <option value="gemini-4-hydrogen">Gemini 4 Hydrogen (free)</option>
             </select>
+            <button class="btn btn-ai" type="button" onclick="aiStatus()"
+              style="padding:6px 10px;font-size:12px;margin-left:8px">Test AI</button>
           </div>
+          <div id="ai-status-result" class="ai-result-box" style="display:none;margin-top:8px"></div>
 
           <div class="agent-examples">
             <span class="agent-ex-label">Try:</span>
@@ -865,6 +873,13 @@ async function initDash(){
     const permission=tab.dataset.permission;
     tab.style.display=permission==='admin'?(isAdmin?'':'none'):(isAdmin||permissions.has(permission)?'':'none');
   });
+  // Staff with AI-report access only get the two read-only report cards.
+  const findCard=document.getElementById('ai-find-card');
+  if(findCard)findCard.style.display=isAdmin?'':'none';
+  const agentSection=document.getElementById('ai-agent-section');
+  if(agentSection)agentSection.style.display=isAdmin?'':'none';
+  const aiReadOnly=document.getElementById('ai-readonly-note');
+  if(aiReadOnly)aiReadOnly.style.display=(!isAdmin&&permissions.has('ai_reports'))?'':'none';
   updateQuickStats();
   populateDropdowns();
   renderAdmSched();
@@ -1470,6 +1485,33 @@ function agentInitModel() {
 }
 agentInitModel();
 
+async function aiStatus() {
+  const box = document.getElementById('ai-status-result');
+  if (!box) return;
+  box.style.display = 'block';
+  box.style.whiteSpace = 'pre-wrap';
+  box.textContent = 'Testing AI connection…';
+  try {
+    const res = await fetch('/api/ai/status');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    const lines = [
+      (data.working ? '✅ AI is working' : '❌ No AI provider is working'),
+      'Gemini key configured: ' + (data.geminiKeyConfigured ? 'yes' : 'NO'),
+      'DeepSeek key configured: ' + (data.deepseekKeyConfigured ? 'yes' : 'no'),
+      'Default model: ' + data.defaultModel,
+      '',
+    ];
+    for (const r of (data.results || [])) {
+      lines.push((r.ok ? '✅ ' : '❌ ') + r.provider + ' / ' + r.model +
+        ' (' + r.ms + 'ms): ' + (r.ok ? 'reply=' + r.reply : r.error));
+    }
+    box.textContent = lines.join('\n');
+  } catch (err) {
+    box.textContent = 'Test failed: ' + (err.message || err);
+  }
+}
+
 function agentOperationalState() {
   return {
     rooms: ROOMS,
@@ -1769,7 +1811,7 @@ async function aiAnalyze() {
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px">
             <span style="width:56px;color:var(--txt-muted)">${r.id}</span>
             <div style="flex:1;height:6px;background:var(--line);border-radius:3px">
-              <div style="width:${r.bookings === 0 ? 0 : Math.max(4,(r.bookings/max)*100)}%;height:100%;background:#7c3aed;border-radius:3px"></div>
+              <div style="width:${r.bookings === 0 ? 0 : Math.max(4,(r.bookings/max)*100)}%;height:100%;background:var(--red);border-radius:3px"></div>
             </div>
             <span style="width:16px;text-align:right">${r.bookings}</span>
           </div>`).join('')}

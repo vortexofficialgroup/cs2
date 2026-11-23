@@ -1,11 +1,12 @@
 // api/ai/[action].js — single serverless function serving /api/ai/*
-// (suggest, analyze, conflicts, agent). Handlers live in lib/routes/ai/ so the
-// project stays under the Vercel Hobby plan's 12-function limit.
+// (suggest, analyze, conflicts, agent, status). Handlers live in lib/routes/ai/
+// so the project stays under the Vercel Hobby plan's 12-function limit.
 const routes = {
   suggest:   () => require('../../lib/routes/ai/suggest'),
   analyze:   () => require('../../lib/routes/ai/analyze'),
   conflicts: () => require('../../lib/routes/ai/conflicts'),
   agent:     () => require('../../lib/routes/ai/agent'),
+  status:    () => require('../../lib/routes/ai/status'),
 };
 
 module.exports = function (req, res) {
