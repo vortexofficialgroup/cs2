@@ -6,6 +6,7 @@ const routes = {
   analyze:   () => require('../../lib/routes/ai/analyze'),
   conflicts: () => require('../../lib/routes/ai/conflicts'),
   agent:     () => require('../../lib/routes/ai/agent'),
+  'staff-agent': () => require('../../lib/routes/ai/staff-agent'),
   status:    () => require('../../lib/routes/ai/status'),
 };
 

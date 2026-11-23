@@ -110,6 +110,7 @@ let PORTAL_SETTINGS = {
   semesterEnd: '2026-12-20',
   campusName: 'UE Dubai Campus',
   campusAddress: 'One Central, Dubai World Trade Centre, Dubai, UAE',
+  staffChatActions: ['query', 'find_substitute', 'check_capacity'],
 };
 
 let _nextId = 40;

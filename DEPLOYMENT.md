@@ -21,9 +21,7 @@ The Vercel project is connected to this GitHub repository and deploys pushes to
    (`gemini-3.5-flash-lite`), or set it to `gemini-3.8-flash` or
    `gemini-4-hydrogen`. Avoid the legacy `gemini-2.5-*` models: Google now
    limits them to projects that used them before the change.
-4. Optional, paid: add `DEEPSEEK_API_KEY` as a fallback. DeepSeek requires a
-   prepaid balance — it is not free.
-5. Redeploy after adding or changing environment variables.
+4. Redeploy after adding or changing environment variables.
 
 Keep all keys and passwords in Vercel's environment-variable settings. Never
 put the Supabase service-role key in browser code or expose it with a
@@ -31,9 +29,10 @@ put the Supabase service-role key in browser code or expose it with a
 
 ## Staff access
 
-Staff accounts are created in **Settings → Staff Access**. Give a professor or
-staff member only **View AI reports (read-only)** to let them open the AI tab's
-Conflict Scan and Utilization Report without any editing or agent-chat access.
+Staff accounts are created in **Settings → Staff Access**. Tick **Use staff
+chatbot** to give a professor or staff member the Staff Chatbot tab. The admin
+controls what that chatbot may do in **Settings → Staff Chatbot Capabilities**;
+the AI Assistant (analysis + full agent) stays admin-only.
 
 These accounts are currently stored in a local JSON file
 (`STAFF_STORE_FILE`, default `~/.ue-portal/staff-users.json`). That works for a

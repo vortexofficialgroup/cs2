@@ -338,7 +338,8 @@
       <div class="a-tab" data-at="reports" data-permission="reports" onclick="setTab('reports')"><i class="fa-solid fa-chart-bar"></i> Reports</div>
       <div class="a-tab" data-at="settings" data-permission="admin" onclick="setTab('settings')"><i class="fa-solid fa-gear"></i> Settings</div>
       <div class="a-tab" data-at="staff" data-permission="admin" onclick="setTab('staff')"><i class="fa-solid fa-user-shield"></i> Staff Access</div>
-      <div class="a-tab" data-at="ai" data-permission="ai_reports" onclick="setTab('ai')"><i class="fa-solid fa-brain"></i> AI Assistant</div>
+      <div class="a-tab" data-at="ai" data-permission="admin" onclick="setTab('ai')"><i class="fa-solid fa-brain"></i> AI Assistant</div>
+      <div class="a-tab" data-at="staffchat" data-permission="chatbot" onclick="setTab('staffchat')"><i class="fa-solid fa-comments"></i> Staff Chatbot</div>
     </div>
 
     <!-- ══ TAB: SCHEDULE ══ -->
@@ -489,6 +490,20 @@
             <div style="font-size:12.5px;color:var(--txt-muted);line-height:1.8" id="set-info"></div>
           </div>
         </div>
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-robot" style="color:var(--red)"></i> Staff Chatbot Capabilities</div>
+          <div style="font-size:12px;color:var(--txt-muted);line-height:1.5;margin-bottom:12px">Choose what the Staff Chatbot is allowed to do for professors and staff. Changes apply to all staff accounts.</div>
+          <div class="staff-permissions" id="staff-chat-actions">
+            <label><input type="checkbox" value="query"> Answer campus questions</label>
+            <label><input type="checkbox" value="substitutes"> Suggest substitute professors</label>
+            <label><input type="checkbox" value="capacity"> Check capacity violations</label>
+            <label><input type="checkbox" value="schedule"> Manage schedule</label>
+            <label><input type="checkbox" value="rooms"> Manage rooms</label>
+            <label><input type="checkbox" value="professors"> Manage professors</label>
+            <label><input type="checkbox" value="announcements"> Publish / remove announcements</label>
+          </div>
+          <button class="btn btn-green btn-sm" style="margin-top:14px" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Capabilities</button>
+        </div>
       </div>
     </div>
 
@@ -508,7 +523,7 @@
                   <label><input type="checkbox" value="professors"> Manage professors</label>
                   <label><input type="checkbox" value="announcements"> Manage announcements</label>
                   <label><input type="checkbox" value="reports"> View reports</label>
-                  <label><input type="checkbox" value="ai_reports"> View AI reports (read-only)</label>
+                  <label><input type="checkbox" value="chatbot"> Use staff chatbot</label>
                 </div>
               </div>
               <button class="btn btn-red btn-sm" onclick="createStaffAccount()"><i class="fa-solid fa-user-plus"></i> Create account</button>
@@ -530,14 +545,13 @@
         <div class="ai-panel-header">
           <div class="ai-brand"><i class="fa-solid fa-brain"></i> AI Admin Assistant</div>
           <div class="ai-subtitle">Powered by Gemini (free tier) · Understands your campus data in real time</div>
-          <div id="ai-readonly-note" class="ai-subtitle" style="display:none;color:var(--red);font-weight:600"><i class="fa-solid fa-lock"></i> Read-only access · reports only</div>
         </div>
 
         <!-- 3 feature cards -->
         <div class="ai-cards-row">
 
           <!-- CARD 1: Natural language suggest -->
-          <div class="ai-card" id="ai-find-card">
+          <div class="ai-card">
             <div class="ai-card-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
             <div class="ai-card-title">Find a Room</div>
             <div class="ai-card-desc">Describe what you need in plain English. AI finds available slots instantly.</div>
@@ -577,7 +591,7 @@
         </div><!-- /ai-cards-row -->
 
         <!-- ── CampuSyncer Agent Chat ── -->
-        <div class="agent-section" id="ai-agent-section">
+        <div class="agent-section">
           <div class="agent-header">
             <div class="agent-avatar"><i class="fa-solid fa-robot"></i></div>
             <div class="agent-header-copy">
@@ -624,6 +638,38 @@
 
       </div><!-- /ai-panel -->
     </div><!-- /at-ai -->
+
+    <!-- ═══ STAFF / PROFESSOR CHATBOT ═══ -->
+    <div id="at-staffchat" style="display:none">
+      <div class="agent-section" style="margin-top:0">
+        <div class="agent-header">
+          <div class="agent-avatar"><i class="fa-solid fa-comments"></i></div>
+          <div class="agent-header-copy">
+            <div class="agent-name">CampuSyncer · Staff Assistant</div>
+            <div class="agent-status"><span class="agent-dot"></span> Capabilities are set by the administrator in Settings</div>
+          </div>
+        </div>
+        <div class="agent-examples">
+          <span class="agent-ex-label">Try:</span>
+          <button class="agent-chip" onclick="staffChatChip(this)">What classes are scheduled on Monday?</button>
+          <button class="agent-chip" onclick="staffChatChip(this)">Which rooms are free Thursday afternoon?</button>
+          <button class="agent-chip" onclick="staffChatChip(this)">Check capacity violations</button>
+        </div>
+        <div class="agent-chat" id="staff-chat">
+          <div class="agent-msg agent-msg--bot">
+            <div class="agent-bubble">Hi! I’m the staff assistant. I can help with campus questions and the tasks your administrator has enabled. What do you need?</div>
+          </div>
+        </div>
+        <div class="agent-input-row">
+          <input id="staff-chat-input" class="agent-input" type="text"
+            placeholder="Ask about rooms, classes, professors…"
+            onkeydown="if(event.key==='Enter')staffChatSend()" />
+          <button class="btn-agent-send" onclick="staffChatSend()" id="staff-chat-send">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div><!-- /at-staffchat -->
 
   </div><!-- /adm-dash -->
 </div>
@@ -873,13 +919,6 @@ async function initDash(){
     const permission=tab.dataset.permission;
     tab.style.display=permission==='admin'?(isAdmin?'':'none'):(isAdmin||permissions.has(permission)?'':'none');
   });
-  // Staff with AI-report access only get the two read-only report cards.
-  const findCard=document.getElementById('ai-find-card');
-  if(findCard)findCard.style.display=isAdmin?'':'none';
-  const agentSection=document.getElementById('ai-agent-section');
-  if(agentSection)agentSection.style.display=isAdmin?'':'none';
-  const aiReadOnly=document.getElementById('ai-readonly-note');
-  if(aiReadOnly)aiReadOnly.style.display=(!isAdmin&&permissions.has('ai_reports'))?'':'none';
   updateQuickStats();
   populateDropdowns();
   renderAdmSched();
@@ -934,7 +973,7 @@ function setTab(t){
   }
   curAdmTab=t;
   document.querySelectorAll('.a-tab').forEach(e=>e.classList.toggle('active',e.dataset.at===t));
-  ['schedule','rooms','profs','announce','reports','settings','staff','ai'].forEach(id=>{
+  ['schedule','rooms','profs','announce','reports','settings','staff','ai','staffchat'].forEach(id=>{
     document.getElementById(`at-${id}`).style.display=id===t?'':'none';
   });
   if(t==='rooms')    renderAdmRooms();
@@ -1350,12 +1389,25 @@ function renderReports(){
 // ═══════════════════════════════════════════════
 // TAB 6 — SETTINGS
 // ═══════════════════════════════════════════════
+const STAFF_CHAT_GROUPS={
+  query:['query'],
+  substitutes:['find_substitute'],
+  capacity:['check_capacity'],
+  schedule:['create_entry','update_entry','delete_entry','delete_multiple'],
+  rooms:['create_room','update_room','delete_room'],
+  professors:['create_professor','update_professor','delete_professor'],
+  announcements:['create_announcement','delete_announcement'],
+};
 function loadSettings(){
   document.getElementById('set-sem').value=PORTAL_SETTINGS.semesterName;
   document.getElementById('set-start').value=PORTAL_SETTINGS.semesterStart;
   document.getElementById('set-end').value=PORTAL_SETTINGS.semesterEnd;
   document.getElementById('set-campus').value=PORTAL_SETTINGS.campusName;
   document.getElementById('set-addr').value=PORTAL_SETTINGS.campusAddress;
+  const enabled=new Set(PORTAL_SETTINGS.staffChatActions||[]);
+  document.querySelectorAll('#staff-chat-actions input').forEach(cb=>{
+    cb.checked=STAFF_CHAT_GROUPS[cb.value].every(action=>enabled.has(action));
+  });
   const info=document.getElementById('set-info');
   if(info)info.innerHTML=`Version: <strong>1.0.0</strong><br>Rooms: <strong>${ROOMS.length}</strong><br>Total schedule entries: <strong>${SCHEDULE.length}</strong><br>Built for: <strong>${PORTAL_SETTINGS.campusName}</strong>`;
 }
@@ -1365,6 +1417,11 @@ async function saveSettings(){
   PORTAL_SETTINGS.semesterEnd=document.getElementById('set-end').value;
   PORTAL_SETTINGS.campusName=document.getElementById('set-campus').value;
   PORTAL_SETTINGS.campusAddress=document.getElementById('set-addr').value;
+  const selected=[];
+  document.querySelectorAll('#staff-chat-actions input:checked').forEach(cb=>{
+    selected.push(...STAFF_CHAT_GROUPS[cb.value]);
+  });
+  PORTAL_SETTINGS.staffChatActions=[...new Set(selected)];
   if(await persistChanges('settings'))showToast('Settings saved ✓');
 }
 async function changePassword(){
@@ -1498,7 +1555,6 @@ async function aiStatus() {
     const lines = [
       (data.working ? '✅ AI is working' : '❌ No AI provider is working'),
       'Gemini key configured: ' + (data.geminiKeyConfigured ? 'yes' : 'NO'),
-      'DeepSeek key configured: ' + (data.deepseekKeyConfigured ? 'yes' : 'no'),
       'Default model: ' + data.defaultModel,
       '',
     ];
@@ -1703,6 +1759,121 @@ async function agentSend() {
     btn.disabled = false;
     input.focus();
   }
+}
+
+// ═══════════════════════════════════════════════
+// STAFF / PROFESSOR CHATBOT
+// ═══════════════════════════════════════════════
+let staffChatHistory=[];
+let staffChatPending=null;
+
+function staffChatAppend(role,content,type=''){
+  const chat=document.getElementById('staff-chat');
+  const div=document.createElement('div');
+  div.className=`agent-msg agent-msg--${role}`;
+  const bubble=document.createElement('div');
+  bubble.className=`agent-bubble${type?' '+type:''}`;
+  bubble.textContent=content;
+  div.appendChild(bubble);
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+}
+function staffChatTyping(){
+  const chat=document.getElementById('staff-chat');
+  const div=document.createElement('div');
+  div.className='agent-msg agent-msg--bot';
+  div.id='staff-chat-typing';
+  div.innerHTML='<div class="agent-typing"><span></span><span></span><span></span></div>';
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+}
+function staffChatRemoveTyping(){const el=document.getElementById('staff-chat-typing');if(el)el.remove();}
+
+function staffChatSync(data){
+  if(!data.executed||!data.operational_state)return;
+  const s=data.operational_state;
+  applyPortalState({rooms:s.rooms,sc:s.schedule,pr:s.professors,an:s.announcements});
+  updateQuickStats();populateDropdowns();
+  renderAdmSched();renderAdmRooms();renderAdmProfs();renderAnnouncements();
+}
+
+async function staffChatCall(extra){
+  const r=await fetch('/api/ai/staff-agent',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({history:staffChatHistory,operational_state:agentOperationalState(),...extra}),
+  });
+  const data=await r.json();
+  if(!r.ok)throw new Error(data.error||`Request failed (${r.status})`);
+  return data;
+}
+
+function staffChatConfirm(message,pending){
+  const chat=document.getElementById('staff-chat');
+  const div=document.createElement('div');
+  div.className='agent-msg agent-msg--bot';
+  const bubble=document.createElement('div');
+  bubble.className='agent-bubble confirm';
+  bubble.textContent=message;
+  const btns=document.createElement('div');
+  btns.className='agent-confirm-btns';
+  const yes=document.createElement('button');
+  yes.className='btn-yes';yes.textContent='✓ Confirm';
+  yes.onclick=()=>{btns.remove();staffChatExecute(pending);};
+  const no=document.createElement('button');
+  no.className='btn-no';no.textContent='✕ Cancel';
+  no.onclick=()=>{btns.remove();staffChatPending=null;staffChatAppend('bot','Cancelled. What else can I help with?');};
+  btns.append(yes,no);bubble.appendChild(btns);div.appendChild(bubble);
+  chat.appendChild(div);chat.scrollTop=chat.scrollHeight;
+}
+
+async function staffChatExecute(pending){
+  staffChatTyping();
+  try{
+    const data=await staffChatCall({message:'confirmed',pending_action:pending});
+    staffChatRemoveTyping();
+    staffChatSync(data);
+    staffChatPending=null;
+    staffChatAppend('bot',data.reply,data.executed?'success':(data.reply.includes('⚠️')?'error':''));
+    staffChatHistory.push({role:'assistant',content:data.reply});
+  }catch(e){
+    staffChatRemoveTyping();
+    staffChatAppend('bot','⚠️ Request failed: '+e.message,'error');
+  }
+}
+
+async function staffChatSend(){
+  const input=document.getElementById('staff-chat-input');
+  const btn=document.getElementById('staff-chat-send');
+  const msg=input.value.trim();
+  if(!msg)return;
+  input.value='';btn.disabled=true;
+  staffChatAppend('user',msg);
+  staffChatHistory.push({role:'user',content:msg});
+  staffChatTyping();
+  try{
+    const data=await staffChatCall({message:msg});
+    staffChatRemoveTyping();
+    staffChatSync(data);
+    staffChatHistory.push({role:'assistant',content:data.reply});
+    if(data.confirm_required&&data.pending_action){
+      staffChatPending=data.pending_action;
+      staffChatAppend('bot',data.reply);
+      staffChatConfirm(data.confirm_message||'Are you sure you want to do this?',data.pending_action);
+    }else{
+      staffChatAppend('bot',data.reply,data.executed?'success':(data.reply.includes('⚠️')?'error':''));
+    }
+  }catch(e){
+    staffChatRemoveTyping();
+    staffChatAppend('bot','⚠️ '+e.message,'error');
+  }finally{
+    btn.disabled=false;input.focus();
+  }
+}
+
+function staffChatChip(el){
+  document.getElementById('staff-chat-input').value=el.textContent.trim();
+  staffChatSend();
 }
 
 // ═══════════════════════════════════════════════
