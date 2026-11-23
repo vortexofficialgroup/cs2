@@ -1,0 +1,83 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Length 2781 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+50 792 Td
+(Campusyncer - Work Report) Tj T*
+(Generated: 2026-11-23 23:38 UTC) Tj T*
+(Repo: vortexofficialgroup/uedubai.campusyncer) Tj T*
+(Branch: main) Tj T*
+() Tj T*
+(PUSH STATUS) Tj T*
+(- git status: clean, branch up to date with origin/main) Tj T*
+(- Unpushed commits: none) Tj T*
+(- Latest commit: 70b74d3 \(pushed\)) Tj T*
+() Tj T*
+(COMMITS DELIVERED \(this session/context\)) Tj T*
+(1\) be7bf68 - Add student program selection and filter schedule by program) Tj T*
+(   - Student sign-up requires Program \(Bachelor/Master/MBA/Other\).) Tj T*
+(   - Microsoft student sign-in requires/saves program.) Tj T*
+(   - My Account allows program change.) Tj T*
+(   - Schedule filtered by student program category; All Programs visible to all.) Tj T*
+(   - Admin/staff views unchanged.) Tj T*
+() Tj T*
+(2\) 0008212 - Harden student profile update for missing program column) Tj T*
+(   - Fallback handling when student_users.program column missing in DB.) Tj T*
+() Tj T*
+(3\) 70b74d3 - Harden security: rate limits, CORS, XSS escaping, cookie-based) Tj T*
+(   student auth, hide admin settings from public state) Tj T*
+(   - GET /api/state: public responses omit ps \(admin settings\); admins get full state.) Tj T*
+(   - Added lib/rate-limit.js: in-memory rate limits for admin/student/Microsoft auth.) Tj T*
+(   - CORS restricted to allowed origins \(configurable via ALLOWED_ORIGINS\).) Tj T*
+(   - Added Vary/credentials/security headers; removed wildcard CORS.) Tj T*
+(   - Student auth moved to HttpOnly SameSite=Strict cookie \(studentToken\).) Tj T*
+(   - Session/persistent cookie support; remember-me honored.) Tj T*
+(   - Added DELETE /api/student/logout; frontend clears legacy localStorage tokens.) Tj T*
+(   - XSS mitigation: esc/escAttr in index.html; escaped announcements, room modal,) Tj T*
+(     course search, class modal, professor/status fields; admin access log escaped.) Tj T*
+() Tj T*
+(DB MIGRATION REQUIRED \(user must run in Supabase SQL Editor\)) Tj T*
+(- https://github.com/vortexofficialgroup/uedubai.campusyncer/blob/main/db/migrations-2026-05-) Tj T*
+(  24.sql) Tj T*
+(- Adds student_users.photo/status/program, sso_staff.linked_professor/photo/status,) Tj T*
+(  and access_log table with RLS/revokes/grants.) Tj T*
+() Tj T*
+(VERIFICATION / NOTES) Tj T*
+(- Vercel deployment previously reported success for latest commits.) Tj T*
+(- Syntax checks passed for touched JS/HTML inline scripts.) Tj T*
+(- Supabase checks \(from debug\): required tables/columns present; access_log working.) Tj T*
+(- Microsoft rules: enabled; allowed domain ue-germany.de.) Tj T*
+(- Caveats: in-memory rate limit is per-instance; XSS hardening not exhaustive;) Tj T*
+(  CSP not added; old browser-stored student tokens cleared/require re-sign-in.) Tj T*
+ET
+endstream
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 3 0 R >>
+endobj
+5 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000000142 00000 n 
+0000002975 00000 n 
+0000003101 00000 n 
+trailer
+<< /Size 6 /Root 5 0 R >>
+startxref
+3150
+%%EOF
