@@ -15,9 +15,10 @@ The Vercel project is connected to this GitHub repository and deploys pushes to
    - `ADMIN_PASSWORD` — a strong initial administrator password.
    - `ADMIN_SECRET` — a long, random secret used to sign administrator
      sessions.
-3. If using the Gemini-powered chatbot and admin assistant, also add
-   `GEMINI_API_KEY`. Leave `GEMINI_MODEL` unset to use the default model, or
-   set it to `gemini-3.8-flash`.
+3. If using the DeepSeek-powered chatbot and admin assistant, also add
+   `DEEPSEEK_API_KEY` (from https://platform.deepseek.com/api_keys). Leave
+   `DEEPSEEK_MODEL` unset to use the default model, or set it to
+   `deepseek-flash` / `deepseek-v4-pro`.
 4. Redeploy after adding or changing environment variables.
 
 Keep all keys and passwords in Vercel's environment-variable settings. Never
