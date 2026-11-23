@@ -11,9 +11,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Raleway:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261123-login">
+<link rel="stylesheet" href="styles.css?v=20261123-login2">
 </head>
-<body>
+<body class="cs-locked">
 
 <nav class="topbar">
   <div class="topbar-stripe"></div>
@@ -200,14 +200,24 @@
 <div class="rp-lightbox" id="rp-lb" onclick="this.classList.remove('open')"><img id="rp-lb-img" alt="Room photo"></div>
 <div class="toast" id="toast"></div>
 
+<!-- UE monogram used by the splash + login mark -->
+<svg class="cs-sprite" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="cs-ue-mark" viewBox="30 35 100 68">
+    <path fill="currentColor" d="M81.4,77.2c0,12.3-7.6,21.7-23.5,21.7S34.6,90,34.6,77.2V39.3c0-0.1,0.1-0.3,0.3-0.3h13.2c0.1,0,0.3,0.1,0.3,0.3v36c0,7.9,2.8,11.9,9.3,11.9c6.6,0,10-4.1,10-11.9v-36c0-0.1,0.1-0.3,0.3-0.3h13.2c0.1,0,0.3,0.1,0.3,0.3L81.4,77.2L81.4,77.2z"/>
+    <path fill="currentColor" d="M90.9,84.5h35.8c0.1,0,0.3,0.1,0.3,0.3V96c0,0.1-0.1,0.3-0.3,0.3H90.9V84.5z"/>
+    <path fill="currentColor" d="M90.9,61.8h29.5c0.1,0,0.3,0.1,0.3,0.3v11.1c0,0.1-0.1,0.3-0.3,0.3H90.9V61.8z"/>
+    <path fill="currentColor" d="M90.9,39h35.8c0.1,0,0.3,0.1,0.3,0.3v11.1c0,0.1-0.1,0.3-0.3,0.3H90.9V39z"/>
+  </symbol>
+</svg>
+
 <!-- ═══ STARTUP SPLASH ═══ -->
 <div class="cs-splash" id="cs-splash">
   <div class="cs-splash-card">
     <div class="cs-logo">
-      <div class="cs-logo-mark"><i class="fa-solid fa-brain"></i></div>
+      <div class="cs-logo-mark"><svg class="cs-ue-mark" aria-hidden="true"><use href="#cs-ue-mark"></use></svg></div>
       <div>
         <div class="cs-logo-name">CampuSyncer</div>
-        <div class="cs-logo-sub">UE Dubai Campus</div>
+        <div class="cs-logo-sub">by vortex</div>
       </div>
     </div>
     <div class="cs-loading"><span></span><span></span><span></span></div>
@@ -219,10 +229,10 @@
 <div class="cs-gate" id="cs-gate" style="display:none">
   <div class="cs-gate-card">
     <div class="cs-logo">
-      <div class="cs-logo-mark"><i class="fa-solid fa-brain"></i></div>
+      <div class="cs-logo-mark"><svg class="cs-ue-mark" aria-hidden="true"><use href="#cs-ue-mark"></use></svg></div>
       <div>
         <div class="cs-logo-name">CampuSyncer</div>
-        <div class="cs-logo-sub">UE Dubai Campus</div>
+        <div class="cs-logo-sub">by vortex</div>
       </div>
     </div>
     <div class="cs-gate-lead">To see the content, <strong>please log in</strong>.</div>
@@ -258,6 +268,7 @@
       <div class="cs-or">or</div>
       <button class="cs-ms" id="cs-ms-btn" style="display:none" onclick="csMicrosoftLogin('staff')"><i class="fa-brands fa-microsoft"></i> Sign in with Microsoft</button>
       <div class="cs-switch" id="cs-ms-note" style="display:none">University Microsoft accounts only.</div>
+      <div class="cs-switch">Don't have a Microsoft account? <a href="https://login.microsoftonline.com/signup" target="_blank" rel="noopener" style="color:var(--red);font-weight:700;text-decoration:none">Create new account</a><br><span style="font-size:10px">Use your university email.</span></div>
       <div class="cs-switch">Administrator? <a href="admin.html" style="color:var(--red);font-weight:700;text-decoration:none">Open admin panel</a></div>
       <div class="cs-error" id="cs-staff-error"></div>
     </div>
