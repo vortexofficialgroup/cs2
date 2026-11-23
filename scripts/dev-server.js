@@ -8,6 +8,8 @@ const fs     = require('fs');
 const path   = require('path');
 const url    = require('url');
 
+require('../lib/load-env')();
+
 const ROOT   = path.join(__dirname, '..');
 const PORT   = process.env.PORT || 3000;
 
