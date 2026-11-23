@@ -31,6 +31,11 @@
       <div class="nav-tab" data-view="schedule" onclick="switchView('schedule')"><i class="fa-solid fa-calendar-days"></i><span>Schedule</span></div>
     </div>
     <div class="topbar-right">
+      <button class="cs-account-btn" id="cs-account-btn" style="display:none" onclick="csOpenAccount()" title="My account">
+        <span class="cs-account-icon" id="cs-account-icon"><i class="fa-solid fa-user"></i></span>
+        <img id="cs-account-avatar" alt="" style="display:none">
+        <span id="cs-account-name"></span>
+      </button>
       <div id="live-clock">--:-- --</div>
     </div>
   </div>
@@ -242,6 +247,7 @@
       <div id="cs-login-form">
         <div class="cs-field"><label>University email</label><input id="cs-email" type="email" placeholder="you@ue-germany.de" autocomplete="email"></div>
         <div class="cs-field"><label>Password</label><input id="cs-password" type="password" placeholder="Your password" autocomplete="current-password"></div>
+        <label class="cs-remember"><input type="checkbox" id="cs-remember"> Stay signed in on this device</label>
         <button class="cs-submit" id="cs-login-btn" onclick="csStudentLogin()">Sign in</button>
         <div class="cs-switch">New here? <button onclick="csToggleSignup(true)">Create an account</button></div>
       </div>
@@ -249,6 +255,7 @@
         <div class="cs-field"><label>Full name</label><input id="cs-name" type="text" placeholder="Your name" autocomplete="name"></div>
         <div class="cs-field"><label>University email</label><input id="cs-signup-email" type="email" placeholder="you@ue-germany.de" autocomplete="email"></div>
         <div class="cs-field"><label>Password (8+ characters)</label><input id="cs-signup-password" type="password" placeholder="Choose a password" autocomplete="new-password"></div>
+        <label class="cs-remember"><input type="checkbox" id="cs-signup-remember"> Stay signed in on this device</label>
         <button class="cs-submit" id="cs-signup-btn" onclick="csStudentRegister()">Create account & continue</button>
         <div class="cs-switch">Already have an account? <button onclick="csToggleSignup(false)">Sign in</button></div>
       </div>
@@ -268,6 +275,28 @@
       <div class="cs-switch">Don't have a Microsoft account? <a href="https://login.microsoftonline.com/signup" target="_blank" rel="noopener" style="color:var(--red);font-weight:700;text-decoration:none">Create new account</a><br><span style="font-size:10px">Use your university email.</span></div>
       <div class="cs-error" id="cs-staff-error"></div>
     </div>
+  </div>
+</div>
+
+<!-- ═══ ACCOUNT (STUDENT + STAFF) ═══ -->
+<div class="cs-account-overlay" id="cs-account-overlay" onclick="if(event.target===this)csCloseAccount()">
+  <div class="cs-account-card">
+    <div class="cs-account-hdr">
+      <span><i class="fa-solid fa-user-gear"></i> My account</span>
+      <button type="button" onclick="csCloseAccount()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="cs-account-photo-box">
+      <span class="cs-account-photo-icon" id="cs-account-photo-icon"><i class="fa-solid fa-user"></i></span>
+      <img id="cs-account-photo" alt="Profile photo" style="display:none">
+      <label class="cs-account-upload"><i class="fa-solid fa-camera"></i> Upload photo
+        <input type="file" id="cs-account-file" accept="image/*" hidden onchange="csAccountPhoto(this)">
+      </label>
+    </div>
+    <div class="cs-field"><label>Name</label><input id="cs-account-name-input" type="text" maxlength="80" autocomplete="name"></div>
+    <div class="cs-field"><label>Status</label><input id="cs-account-status" type="text" maxlength="120" placeholder="e.g. Available, On sick leave…"></div>
+    <div class="cs-error" id="cs-account-error"></div>
+    <button class="cs-submit" id="cs-account-save" onclick="csSaveAccount()"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
+    <button class="cs-logout" onclick="csLogout()"><i class="fa-solid fa-right-from-bracket"></i> Sign out</button>
   </div>
 </div>
 
@@ -300,7 +329,7 @@ function renderAnnouncements(){
     <div class="announce-wrap" style="padding:0 20px">
       <div style="max-width:1260px;margin:0 auto">
         <div class="announce-bar ${a.type}" id="ab-${a.id}">
-          <i class="fa-solid ${a.type==='urgent'?'fa-triangle-exclamation':a.type==='warning'?'fa-clock-rotate-left':'fa-circle-info'}"></i>
+          <i class="fa-solid ${a.type==='urgent'?'fa-triangle-exclamation':a.type==='warning'?'fa-clock-rotate-left':a.type==='exam'?'fa-file-pen':'fa-circle-info'}"></i>
           <span><span class="a-title">${a.title}:</span> <span class="a-msg">${a.msg}</span></span>
           <span class="announce-close" onclick="document.getElementById('ab-${a.id}').closest('.announce-wrap').remove()"><i class="fa-solid fa-xmark"></i></span>
         </div>
@@ -1194,8 +1223,20 @@ async function cbSend() {
 
 // ═══ STARTUP SPLASH + LOGIN GATE ═══
 const CS_TOKEN_KEY='campusyncerStudentToken';
-let csStudent=null, csMsClient=null;
+let csStudent=null, csMsClient=null, csAccountUser=null, csAccountPhotoData='';
 function csWait(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+function csStoreToken(token,remember){
+  localStorage.removeItem(CS_TOKEN_KEY);
+  sessionStorage.removeItem(CS_TOKEN_KEY);
+  (remember?localStorage:sessionStorage).setItem(CS_TOKEN_KEY,token);
+}
+function csSavedToken(){return localStorage.getItem(CS_TOKEN_KEY)||sessionStorage.getItem(CS_TOKEN_KEY);}
+function csClearToken(){localStorage.removeItem(CS_TOKEN_KEY);sessionStorage.removeItem(CS_TOKEN_KEY);csStudent=null;csAccountUser=null;}
+function csStudentRemember(){
+  const login=document.getElementById('cs-remember');
+  const signup=document.getElementById('cs-signup-remember');
+  return !!(login&&login.checked||signup&&signup.checked);
+}
 async function csFetch(path,options){
   const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...(options&&options.headers||{})}});
   const data=await response.json().catch(()=>({}));
@@ -1221,12 +1262,20 @@ function csToggleSignup(show){
   document.getElementById('cs-signup-form').style.display=show?'':'none';
   csClearErrors();
 }
+async function csHideSplash(){
+  const splash=document.getElementById('cs-splash');
+  splash.classList.add('fade-out');
+  await csWait(450);
+  splash.style.display='none';
+}
 async function csUnlock(name){
   const gate=document.getElementById('cs-gate');
-  gate.classList.add('fade-out');
-  await csWait(450);
+  if(gate.style.display==='flex')gate.classList.add('fade-out');
+  await csHideSplash();
+  gate.classList.remove('fade-out');
   gate.style.display='none';
   document.body.classList.remove('cs-locked');
+  csRenderAccount();
   showToast(name?`Welcome, ${name}!`:'Welcome back!');
 }
 async function csCheckSession(){

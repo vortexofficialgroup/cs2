@@ -31,8 +31,14 @@ CREATE TABLE IF NOT EXISTS public.sso_staff (
   title TEXT NOT NULL DEFAULT 'Staff',
   permissions TEXT[] NOT NULL DEFAULT '{}',
   ai_actions TEXT[] NOT NULL DEFAULT '{}',
+  photo TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS photo TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS linked_professor TEXT NOT NULL DEFAULT '';
 
 ALTER TABLE public.sso_staff ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.sso_staff FROM PUBLIC, anon, authenticated;
@@ -45,9 +51,14 @@ CREATE TABLE IF NOT EXISTS public.student_users (
   name TEXT NOT NULL,
   salt TEXT NOT NULL,
   password_hash TEXT NOT NULL,
+  photo TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS photo TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT '';
+
 ALTER TABLE public.student_users ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.student_users FROM PUBLIC, anon, authenticated;
-GRANT SELECT, INSERT ON TABLE public.student_users TO service_role;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.student_users TO service_role;

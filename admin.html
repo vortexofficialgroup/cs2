@@ -441,6 +441,7 @@
                 <option value="info">ℹ️ Info</option>
                 <option value="warning">⚠️ Warning</option>
                 <option value="urgent">🚨 Urgent</option>
+                <option value="exam">📝 Exam</option>
               </select>
             </div>
             <div class="ff"><label>Expires</label><input type="date" id="ann-exp"></div>
@@ -539,6 +540,7 @@
           <div class="ff"><label for="staff-title">Role or title</label><input id="staff-title" type="text" placeholder="e.g. Student Counselor"></div>
           <div class="ff"><label for="staff-username">Username</label><input id="staff-username" type="text" autocomplete="off"></div>
           <div class="ff"><label for="staff-password">Temporary password (10–128 characters)</label><input id="staff-password" type="password" autocomplete="new-password" maxlength="128"></div>
+          <div class="ff"><label for="staff-linked-prof">Linked professor (staff can only change this professor’s own classes)</label><select id="staff-linked-prof"></select></div>
           <div class="ff">
             <label>Normal permissions</label>
             <div class="staff-permissions" id="staff-normal-perms"></div>
@@ -641,12 +643,13 @@
             <button class="agent-chip" onclick="agentChip(this)">Add Professor Alex Morgan to Computer Science</button>
             <button class="agent-chip" onclick="agentChip(this)">Publish an urgent campus closure announcement through Friday</button>
             <button class="agent-chip" onclick="agentChip(this)">Check capacity violations</button>
+            <button class="agent-chip" onclick="agentChip(this)">Duplicate this week’s schedule for next week</button>
             <button class="agent-chip" onclick="agentChip(this)">Show all classes on Wednesday</button>
           </div>
 
           <div class="agent-chat" id="agent-chat">
             <div class="agent-msg agent-msg--bot">
-              <div class="agent-bubble">Hey! I'm CampuSyncer. I can answer questions and manage schedules, rooms, professors, and announcements. I'll ask you to confirm changes that update or remove data, or publish announcements. Staff accounts, professor contact details, and security settings stay in their protected admin screens.</div>
+              <div class="agent-bubble">Hey! I'm CampuSyncer. I can answer questions and manage schedules, rooms, professors, announcements, and exam notices. I can also duplicate a week’s schedule for next week. I'll ask you to confirm changes that update or remove data. Staff accounts, professor contact details, and security settings stay in their protected admin screens.</div>
             </div>
           </div>
 
@@ -1073,7 +1076,8 @@ function staffRow(container,user,onEdit,onRemove){
   info.className='staff-account-meta';
   const perms=(user.permissions||[]).join(', ')||'no tab access';
   const caps=(user.aiActions||[]).join(', ')||'no AI access';
-  info.textContent=`${user.title||'Staff'} · ${user.username} · ${perms} · AI: ${caps}`;
+  const linked=user.linkedProfessor?` · teaches: ${user.linkedProfessor}`:' · teaches: not linked';
+  info.textContent=`${user.title||'Staff'} · ${user.username}${linked} · ${perms} · AI: ${caps}`;
   details.append(name,info);
   const actions=document.createElement('div');
   actions.style.cssText='display:flex;gap:6px;flex-shrink:0';
@@ -1091,7 +1095,11 @@ function openStaffEditor(container,user,save,refresh){
   container.replaceChildren();
   const box=document.createElement('div');
   box.style.cssText='padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-soft);margin-bottom:10px';
+  const profOptions=['<option value="">— Not linked —</option>'].concat(
+    (PROFESSORS||[]).map(p=>`<option value="${p.name.replace(/"/g,'&quot;')}" ${p.name===user.linkedProfessor?'selected':''}>${p.name}</option>`)
+  ).join('');
   box.innerHTML=`<div style="font-size:12.5px;font-weight:700;margin-bottom:10px">${user.displayName} — ${user.username}</div>
+    <div class="ff" style="margin-bottom:8px"><label>Linked professor (staff can only change this professor’s own classes)</label><select id="edit-linked-prof">${profOptions}</select></div>
     <div class="ff" style="margin-bottom:8px"><label>Normal permissions</label><div class="staff-permissions" id="edit-normal">${checkboxList(NORMAL_PERMISSIONS,user.permissions)}</div></div>
     <div class="ff" style="margin-bottom:10px"><label>AI using — what the chatbot may do</label><div class="staff-permissions ai-capabilities" id="edit-caps">${checkboxList(AI_CAPABILITIES,user.aiActions)}</div></div>
     <div style="display:flex;gap:8px"><button class="btn btn-green btn-sm" id="edit-save">Save</button><button class="btn btn-out btn-sm" id="edit-cancel">Cancel</button></div>`;
@@ -1100,7 +1108,8 @@ function openStaffEditor(container,user,save,refresh){
   box.querySelector('#edit-save').onclick=async()=>{
     const permissions=[...box.querySelectorAll('#edit-normal input:checked')].map(i=>i.value);
     const aiActions=[...box.querySelectorAll('#edit-caps input:checked')].map(i=>i.value);
-    try{await save(permissions,aiActions);showToast('Permissions saved ✓');await refresh();}
+    const linkedProfessor=box.querySelector('#edit-linked-prof').value;
+    try{await save(permissions,aiActions,linkedProfessor);showToast('Permissions saved ✓');await refresh();}
     catch(err){showToast(err.message);}
   };
 }
@@ -1113,7 +1122,7 @@ async function loadStaffAccounts(){
     if(staff.length===0){container.textContent='No staff accounts have been created.';return;}
     staff.forEach(user=>staffRow(container,user,
       ()=>openStaffEditor(container,user,
-        (permissions,aiActions)=>apiRequest('/api/admin/staff',{method:'PUT',body:JSON.stringify({id:user.id,permissions,aiActions})}),
+        (permissions,aiActions,linkedProfessor)=>apiRequest('/api/admin/staff',{method:'PUT',body:JSON.stringify({id:user.id,permissions,aiActions,linkedProfessor})}),
         loadStaffAccounts),
       ()=>deleteStaffAccount(user.id)));
   }catch(err){container.textContent=err.message;}
@@ -1129,7 +1138,7 @@ async function loadSsoStaff(){
     if(staff.length===0){container.textContent='No Microsoft staff have signed in yet.';return;}
     staff.forEach(user=>staffRow(container,user,
       ()=>openStaffEditor(container,user,
-        (permissions,aiActions)=>apiRequest('/api/admin/sso-staff',{method:'PUT',body:JSON.stringify({email:user.email,displayName:user.displayName,title:user.title,permissions,aiActions})}),
+        (permissions,aiActions,linkedProfessor)=>apiRequest('/api/admin/sso-staff',{method:'PUT',body:JSON.stringify({email:user.email,displayName:user.displayName,title:user.title,permissions,aiActions,linkedProfessor})}),
         loadSsoStaff),
       ()=>removeSsoStaff(user.email)));
   }catch(err){container.textContent=err.message;}
@@ -1142,11 +1151,13 @@ async function createStaffAccount(){
     title:document.getElementById('staff-title').value.trim(),
     username:document.getElementById('staff-username').value.trim(),
     password:document.getElementById('staff-password').value,
+    linkedProfessor:document.getElementById('staff-linked-prof').value,
     permissions,aiActions
   };
   try{
     await apiRequest('/api/admin/staff',{method:'POST',body:JSON.stringify(account)});
     ['staff-name','staff-title','staff-username','staff-password'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('staff-linked-prof').value='';
     document.querySelectorAll('#staff-normal-perms input, #staff-ai-caps input').forEach(input=>input.checked=false);
     await loadStaffAccounts();
     showToast('Staff account created');
@@ -1442,7 +1453,7 @@ function renderAnnouncements(){
       return`<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px">
         <div style="flex:1">
           <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
-            <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:${a.type==='urgent'?'var(--red-lt)':a.type==='warning'?'var(--yellow-bg)':'#EFF6FF'};color:${a.type==='urgent'?'var(--red)':a.type==='warning'?'var(--yellow)':'#1D4ED8'}">${a.type.toUpperCase()}</span>
+            <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:${a.type==='urgent'?'var(--red-lt)':a.type==='warning'?'var(--yellow-bg)':a.type==='exam'?'#F3E8FF':'#EFF6FF'};color:${a.type==='urgent'?'var(--red)':a.type==='warning'?'var(--yellow)':a.type==='exam'?'#7C3AED':'#1D4ED8'}">${a.type.toUpperCase()}</span>
             ${expired?'<span style="font-size:10px;color:var(--txt-muted);font-weight:600">EXPIRED</span>':''}
           </div>
           <div style="font-weight:700;font-size:13px">${a.title}</div>
@@ -1551,6 +1562,12 @@ function renderPermissionPickers(){
   if(caps&&!caps.children.length)caps.innerHTML=checkboxList(AI_CAPABILITIES,['read_data']);
   const def=document.getElementById('ms-default-caps');
   if(def&&!def.children.length)def.innerHTML=checkboxList(AI_CAPABILITIES,['read_data','substitutes','capacity']);
+  const linked=document.getElementById('staff-linked-prof');
+  if(linked){
+    const cur=linked.value;
+    linked.innerHTML='<option value="">— Not linked —</option>'+(PROFESSORS||[]).map(p=>`<option value="${p.name.replace(/"/g,'&quot;')}">${p.name}</option>`).join('');
+    if(cur)linked.value=cur;
+  }
 }
 function loadMicrosoftSettings(){
   const ms=PORTAL_SETTINGS.microsoftLogin||{};

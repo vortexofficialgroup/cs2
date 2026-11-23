@@ -4,6 +4,7 @@ const routes = {
   config: () => require('../../lib/routes/auth/config'),
   microsoft: () => require('../../lib/routes/auth/microsoft'),
   session: () => require('../../lib/routes/auth/session'),
+  account: () => require('../../lib/routes/auth/account'),
 };
 
 module.exports = function (req, res) {
