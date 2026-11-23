@@ -378,3 +378,50 @@ input,select,textarea{font-family:inherit}
 
 /* Substitute professor badge */
 .sub-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;margin-left:4px;white-space:nowrap;vertical-align:middle}
+
+/* ═══ CampusSyncer startup splash + login gate ═══ */
+.cs-splash,.cs-gate{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(8,10,16,.78);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);transition:opacity .45s ease}
+.cs-splash.fade-out,.cs-gate.fade-out{opacity:0;pointer-events:none}
+.cs-splash-card,.cs-gate-card{width:min(440px,100%);background:linear-gradient(160deg,#fff 0%,#fff7f7 100%);border:1px solid rgba(200,16,46,.18);border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.45);padding:38px 32px 32px;text-align:center;position:relative;overflow:hidden}
+.cs-splash-card::before,.cs-gate-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#9B0D22,#C8102E,#ff6b6b,#C8102E,#9B0D22);background-size:200% 100%;animation:csSlide 2.5s linear infinite}
+.cs-logo{display:flex;flex-direction:column;align-items:center;gap:14px}
+.cs-logo-mark{width:92px;height:92px;border-radius:26px;display:grid;place-items:center;position:relative;background:linear-gradient(145deg,#C8102E,#9B0D22);box-shadow:0 12px 32px rgba(200,16,46,.34);animation:csFloat 2.4s ease-in-out infinite}
+.cs-logo-mark::before{content:"";position:absolute;inset:-9px;border-radius:32px;border:3px solid transparent;border-top-color:#C8102E;border-right-color:rgba(200,16,46,.35);animation:csSpin 1.5s linear infinite}
+.cs-logo-mark i{font-size:40px;color:#fff;animation:csPulse 2.4s ease-in-out infinite}
+.cs-logo-name{font-family:Raleway,sans-serif;font-size:30px;font-weight:900;letter-spacing:-.04em;color:#9B0D22;background:linear-gradient(90deg,#9B0D22,#C8102E,#ff5f6d,#C8102E,#9B0D22);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:csSlide 3s linear infinite}
+.cs-logo-sub{font-size:10.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--txt-muted,#6b7280);margin-top:-8px}
+.cs-loading{display:flex;justify-content:center;gap:7px;margin-top:26px}
+.cs-loading span{width:8px;height:8px;border-radius:50%;background:#C8102E;animation:csBounce 1.1s ease-in-out infinite}
+.cs-loading span:nth-child(2){animation-delay:.15s}.cs-loading span:nth-child(3){animation-delay:.3s}
+.cs-splash-text{margin-top:14px;font-size:12px;color:var(--txt-muted,#6b7280);font-weight:600}
+@keyframes csSpin{to{transform:rotate(360deg)}}
+@keyframes csFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes csPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.12);opacity:.85}}
+@keyframes csSlide{to{background-position:200% 0}}
+@keyframes csBounce{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-9px);opacity:1}}
+.cs-gate-card{padding-top:30px}
+.cs-gate-card .cs-logo-mark{width:62px;height:62px;border-radius:18px;animation:none;box-shadow:0 8px 20px rgba(200,16,46,.25)}
+.cs-gate-card .cs-logo-mark::before{display:none}
+.cs-gate-card .cs-logo-mark i{font-size:27px;animation:none}
+.cs-gate-card .cs-logo-name{font-size:24px;animation:none;color:#9B0D22;-webkit-text-fill-color:#9B0D22}
+.cs-gate-card .cs-logo-sub{margin-top:-4px}
+.cs-gate-lead{margin:18px 0 18px;font-size:13px;color:var(--txt-mid,#4b5563);line-height:1.5}
+.cs-gate-lead strong{color:#9B0D22}
+.cs-tabs{display:flex;gap:6px;background:#F3F4F6;border-radius:12px;padding:5px;margin-bottom:18px}
+.cs-tab{flex:1;border:none;background:transparent;border-radius:9px;padding:10px;font-size:12.5px;font-weight:700;color:#6b7280;cursor:pointer;transition:.2s}
+.cs-tab.active{background:#fff;color:#9B0D22;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.cs-pane{display:none;text-align:left}.cs-pane.active{display:block}
+.cs-field{margin-bottom:12px}
+.cs-field label{display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.cs-field input{width:100%;border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:11px 12px;font-size:13px;font-family:inherit;outline:none;transition:.2s;box-sizing:border-box}
+.cs-field input:focus{border-color:#C8102E;box-shadow:0 0 0 3px rgba(200,16,46,.12)}
+.cs-submit{width:100%;border:none;border-radius:10px;background:linear-gradient(135deg,#C8102E,#9B0D22);color:#fff;font-size:13px;font-weight:700;padding:12px;cursor:pointer;transition:.2s;margin-top:4px}
+.cs-submit:hover{filter:brightness(1.07)}.cs-submit:disabled{opacity:.6;cursor:wait}
+.cs-switch{margin-top:14px;text-align:center;font-size:11.5px;color:#6b7280}
+.cs-switch button{border:none;background:none;color:#C8102E;font-weight:700;cursor:pointer;padding:0;font-size:11.5px}
+.cs-or{display:flex;align-items:center;gap:10px;color:#9ca3af;font-size:10px;margin:14px 0 10px}
+.cs-or::before,.cs-or::after{content:"";flex:1;height:1px;background:var(--border,#e5e7eb)}
+.cs-ms{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--border,#e5e7eb);background:#fff;border-radius:10px;padding:11px;font-size:12.5px;font-weight:700;color:#374151;text-decoration:none;cursor:pointer}
+.cs-error{display:none;margin-top:10px;background:#FEF2F2;border:1px solid #FECACA;color:#9B0D22;border-radius:9px;padding:9px 11px;font-size:11.5px}
+body.cs-locked{overflow:hidden}
+@media(max-width:520px){.cs-splash-card,.cs-gate-card{padding:30px 20px 24px}.cs-logo-name{font-size:25px}}

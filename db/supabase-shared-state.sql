@@ -23,3 +23,31 @@ REVOKE ALL ON TABLE public.portal_state FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.merge_portal_state(JSONB) FROM PUBLIC, anon, authenticated;
 GRANT SELECT ON TABLE public.portal_state TO service_role;
 GRANT EXECUTE ON FUNCTION public.merge_portal_state(JSONB) TO service_role;
+
+-- Microsoft (SSO) staff accounts. Created on first sign-in, managed by admin.
+CREATE TABLE IF NOT EXISTS public.sso_staff (
+  email TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  title TEXT NOT NULL DEFAULT 'Staff',
+  permissions TEXT[] NOT NULL DEFAULT '{}',
+  ai_actions TEXT[] NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.sso_staff ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.sso_staff FROM PUBLIC, anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.sso_staff TO service_role;
+
+-- Student accounts for the public portal sign-up/login gate.
+CREATE TABLE IF NOT EXISTS public.student_users (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  salt TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.student_users ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.student_users FROM PUBLIC, anon, authenticated;
+GRANT SELECT, INSERT ON TABLE public.student_users TO service_role;

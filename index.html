@@ -10,7 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Raleway:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="styles.css?v=20261123">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="stylesheet" href="styles.css?v=20261123-login">
 </head>
 <body>
 
@@ -199,7 +200,71 @@
 <div class="rp-lightbox" id="rp-lb" onclick="this.classList.remove('open')"><img id="rp-lb-img" alt="Room photo"></div>
 <div class="toast" id="toast"></div>
 
-<script src="data.js?v=20261123-shared"></script>
+<!-- ═══ STARTUP SPLASH ═══ -->
+<div class="cs-splash" id="cs-splash">
+  <div class="cs-splash-card">
+    <div class="cs-logo">
+      <div class="cs-logo-mark"><i class="fa-solid fa-brain"></i></div>
+      <div>
+        <div class="cs-logo-name">CampuSyncer</div>
+        <div class="cs-logo-sub">UE Dubai Campus</div>
+      </div>
+    </div>
+    <div class="cs-loading"><span></span><span></span><span></span></div>
+    <div class="cs-splash-text" id="cs-splash-text">Preparing your campus…</div>
+  </div>
+</div>
+
+<!-- ═══ LOGIN GATE ═══ -->
+<div class="cs-gate" id="cs-gate" style="display:none">
+  <div class="cs-gate-card">
+    <div class="cs-logo">
+      <div class="cs-logo-mark"><i class="fa-solid fa-brain"></i></div>
+      <div>
+        <div class="cs-logo-name">CampuSyncer</div>
+        <div class="cs-logo-sub">UE Dubai Campus</div>
+      </div>
+    </div>
+    <div class="cs-gate-lead">To see the content, <strong>please log in</strong>.</div>
+    <div class="cs-tabs">
+      <button class="cs-tab active" id="cs-tab-student" onclick="csSetTab('student')">🎓 Student</button>
+      <button class="cs-tab" id="cs-tab-staff" onclick="csSetTab('staff')">🧑‍🏫 Staff</button>
+    </div>
+
+    <div class="cs-pane active" id="cs-pane-student">
+      <div id="cs-login-form">
+        <div class="cs-field"><label>University email</label><input id="cs-email" type="email" placeholder="you@ue-germany.de" autocomplete="email"></div>
+        <div class="cs-field"><label>Password</label><input id="cs-password" type="password" placeholder="Your password" autocomplete="current-password"></div>
+        <button class="cs-submit" id="cs-login-btn" onclick="csStudentLogin()">Sign in</button>
+        <div class="cs-switch">New here? <button onclick="csToggleSignup(true)">Create an account</button></div>
+      </div>
+      <div id="cs-signup-form" style="display:none">
+        <div class="cs-field"><label>Full name</label><input id="cs-name" type="text" placeholder="Your name" autocomplete="name"></div>
+        <div class="cs-field"><label>University email</label><input id="cs-signup-email" type="email" placeholder="you@ue-germany.de" autocomplete="email"></div>
+        <div class="cs-field"><label>Password (8+ characters)</label><input id="cs-signup-password" type="password" placeholder="Choose a password" autocomplete="new-password"></div>
+        <button class="cs-submit" id="cs-signup-btn" onclick="csStudentRegister()">Create account & continue</button>
+        <div class="cs-switch">Already have an account? <button onclick="csToggleSignup(false)">Sign in</button></div>
+      </div>
+      <div class="cs-or" id="cs-student-ms-or" style="display:none">or</div>
+      <button class="cs-ms" id="cs-student-ms-btn" style="display:none" onclick="csMicrosoftLogin('student')"><i class="fa-brands fa-microsoft"></i> Sign in with school email</button>
+      <div class="cs-switch" id="cs-student-ms-note" style="display:none">University Microsoft accounts only.</div>
+      <div class="cs-error" id="cs-student-error"></div>
+    </div>
+
+    <div class="cs-pane" id="cs-pane-staff">
+      <div class="cs-field"><label>Username</label><input id="cs-staff-user" type="text" placeholder="Your staff username" autocomplete="username"></div>
+      <div class="cs-field"><label>Password</label><input id="cs-staff-pass" type="password" placeholder="Your password" autocomplete="current-password"></div>
+      <button class="cs-submit" id="cs-staff-btn" onclick="csStaffLogin()">Sign in as staff</button>
+      <div class="cs-or">or</div>
+      <button class="cs-ms" id="cs-ms-btn" style="display:none" onclick="csMicrosoftLogin('staff')"><i class="fa-brands fa-microsoft"></i> Sign in with Microsoft</button>
+      <div class="cs-switch" id="cs-ms-note" style="display:none">University Microsoft accounts only.</div>
+      <div class="cs-switch">Administrator? <a href="admin.html" style="color:var(--red);font-weight:700;text-decoration:none">Open admin panel</a></div>
+      <div class="cs-error" id="cs-staff-error"></div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js?v=20261123-login"></script>
 <script>
 // ══════════════════════════════════════════════════
 // STATE
@@ -760,7 +825,7 @@ async function init(){
   renderDash();
   document.getElementById('f-time').value=m2t(getNow().min);
 }
-init();
+window.csDataReady=init();
 </script>
 
 <!-- ═══ CAMPUSYNCER CHATBOT ═══ -->
@@ -1119,6 +1184,184 @@ async function cbSend() {
     input.focus();
   }
 }
+
+// ═══ STARTUP SPLASH + LOGIN GATE ═══
+const CS_TOKEN_KEY='campusyncerStudentToken';
+let csStudent=null, csMsClient=null;
+function csWait(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+async function csFetch(path,options){
+  const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...(options&&options.headers||{})}});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||`Request failed (${response.status})`);
+  return data;
+}
+function csError(id,message){
+  const box=document.getElementById(id);
+  box.textContent=message;box.style.display='block';
+}
+function csClearErrors(){
+  ['cs-student-error','cs-staff-error'].forEach(id=>{const box=document.getElementById(id);box.style.display='none';box.textContent='';});
+}
+function csSetTab(tab){
+  document.getElementById('cs-tab-student').classList.toggle('active',tab==='student');
+  document.getElementById('cs-tab-staff').classList.toggle('active',tab==='staff');
+  document.getElementById('cs-pane-student').classList.toggle('active',tab==='student');
+  document.getElementById('cs-pane-staff').classList.toggle('active',tab==='staff');
+  csClearErrors();
+}
+function csToggleSignup(show){
+  document.getElementById('cs-login-form').style.display=show?'none':'';
+  document.getElementById('cs-signup-form').style.display=show?'':'none';
+  csClearErrors();
+}
+async function csUnlock(name){
+  const gate=document.getElementById('cs-gate');
+  gate.classList.add('fade-out');
+  await csWait(450);
+  gate.style.display='none';
+  document.body.classList.remove('cs-locked');
+  showToast(name?`Welcome, ${name}!`:'Welcome back!');
+}
+async function csCheckSession(){
+  const token=localStorage.getItem(CS_TOKEN_KEY);
+  if(token){
+    try{
+      const data=await csFetch('/api/student/me',{headers:{'x-student-token':token}});
+      csStudent=data.user;
+      return true;
+    }catch{localStorage.removeItem(CS_TOKEN_KEY);}
+  }
+  try{
+    const data=await csFetch('/api/auth/session');
+    return data.user&&['admin','staff'].includes(data.user.role);
+  }catch{return false;}
+}
+async function csLoadMicrosoftConfig(){
+  try{
+    const cfg=await csFetch('/api/auth/config');
+    if(!cfg.enabled||!window.supabase)return;
+    csMsClient=window.supabase.createClient(cfg.url,cfg.anonKey);
+    ['cs-ms-btn','cs-student-ms-btn'].forEach(id=>{
+      const btn=document.getElementById(id);
+      if(btn)btn.style.display='flex';
+    });
+    ['cs-ms-note','cs-student-ms-note','cs-student-ms-or'].forEach(id=>{
+      const note=document.getElementById(id);
+      if(note)note.style.display='block';
+    });
+  }catch{/* Microsoft sign-in stays hidden if it is not configured */}
+}
+function csMsErrorBox(flow){return flow==='student'?'cs-student-error':'cs-staff-error';}
+async function csMicrosoftLogin(flow){
+  csClearErrors();
+  if(!csMsClient){csError(csMsErrorBox(flow),'Microsoft sign-in is not available right now.');return;}
+  sessionStorage.setItem('csMsFlow',flow==='student'?'student':'staff');
+  const {error}=await csMsClient.auth.signInWithOAuth({
+    provider:'azure',
+    options:{scopes:'email',redirectTo:location.origin+location.pathname},
+  });
+  if(error)csError(csMsErrorBox(flow),error.message);
+}
+async function csHandleMicrosoftReturn(){
+  const params=new URLSearchParams(location.hash.slice(1));
+  const accessToken=params.get('access_token');
+  const hashError=params.get('error_description')||params.get('error');
+  if(!accessToken&&!hashError)return false;
+  history.replaceState(null,'',location.pathname);
+  const flow=sessionStorage.getItem('csMsFlow')||'student';
+  sessionStorage.removeItem('csMsFlow');
+  const errorBox=csMsErrorBox(flow);
+  try{
+    if(!accessToken)throw new Error('Microsoft sign-in failed: '+hashError);
+    if(flow==='student'){
+      const result=await csFetch('/api/student/microsoft',{method:'POST',body:JSON.stringify({accessToken})});
+      localStorage.setItem(CS_TOKEN_KEY,result.token);
+      csStudent=result.user;
+      await csUnlock(result.user.name);
+      return true;
+    }
+    const result=await csFetch('/api/auth/microsoft',{method:'POST',body:JSON.stringify({accessToken})});
+    const session=await csFetch('/api/auth/session');
+    if(!session.user||!['admin','staff'].includes(session.user.role))throw new Error('Staff sign-in failed. Please try again.');
+    localStorage.removeItem(CS_TOKEN_KEY);
+    await csUnlock(session.user.displayName||result.user.displayName||session.user.username);
+    return true;
+  }catch(err){
+    csError(errorBox,err.message);
+    return false;
+  }
+}
+async function csBoot(){
+  document.body.classList.add('cs-locked');
+  await csLoadMicrosoftConfig();
+  const seen=sessionStorage.getItem('csSeen')==='1';
+  await Promise.all([window.csDataReady||Promise.resolve(),csWait(seen?700:2100)]);
+  document.getElementById('cs-splash-text').textContent='Ready — opening your portal…';
+  await csWait(320);
+  const splash=document.getElementById('cs-splash');
+  splash.classList.add('fade-out');
+  await csWait(450);
+  splash.style.display='none';
+  if(await csHandleMicrosoftReturn())return;
+  if(await csCheckSession()){await csUnlock(csStudent&&csStudent.name);return;}
+  document.getElementById('cs-gate').style.display='flex';
+  sessionStorage.setItem('csSeen','1');
+}
+async function csStudentLogin(){
+  csClearErrors();
+  const btn=document.getElementById('cs-login-btn');btn.disabled=true;
+  try{
+    const data=await csFetch('/api/student/login',{method:'POST',body:JSON.stringify({
+      email:document.getElementById('cs-email').value.trim(),
+      password:document.getElementById('cs-password').value,
+    })});
+    localStorage.setItem(CS_TOKEN_KEY,data.token);
+    csStudent=data.user;
+    await csUnlock(data.user.name);
+  }catch(err){csError('cs-student-error',err.message);}
+  finally{btn.disabled=false;}
+}
+async function csStudentRegister(){
+  csClearErrors();
+  const btn=document.getElementById('cs-signup-btn');btn.disabled=true;
+  try{
+    const data=await csFetch('/api/student/register',{method:'POST',body:JSON.stringify({
+      name:document.getElementById('cs-name').value.trim(),
+      email:document.getElementById('cs-signup-email').value.trim(),
+      password:document.getElementById('cs-signup-password').value,
+    })});
+    localStorage.setItem(CS_TOKEN_KEY,data.token);
+    csStudent=data.user;
+    await csUnlock(data.user.name);
+  }catch(err){csError('cs-student-error',err.message);}
+  finally{btn.disabled=false;}
+}
+async function csStaffLogin(){
+  csClearErrors();
+  const btn=document.getElementById('cs-staff-btn');btn.disabled=true;
+  try{
+    await csFetch('/api/admin/login',{method:'POST',body:JSON.stringify({
+      username:document.getElementById('cs-staff-user').value.trim(),
+      password:document.getElementById('cs-staff-pass').value,
+      loginType:'staff',
+    })});
+    const session=await csFetch('/api/auth/session');
+    if(!session.user||!['admin','staff'].includes(session.user.role))throw new Error('Staff sign-in failed. Please try again.');
+    localStorage.removeItem(CS_TOKEN_KEY);
+    await csUnlock(session.user.displayName||session.user.username);
+  }catch(err){csError('cs-staff-error',err.message);}
+  finally{btn.disabled=false;}
+}
+['cs-password','cs-signup-password','cs-staff-pass'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',event=>{
+    if(event.key==='Enter'){
+      if(id==='cs-password')csStudentLogin();
+      if(id==='cs-signup-password')csStudentRegister();
+      if(id==='cs-staff-pass')csStaffLogin();
+    }
+  });
+});
+csBoot();
 </script>
 </body>
 </html>

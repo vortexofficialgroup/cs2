@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Raleway:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="styles.css?v=20261120">
+<link rel="stylesheet" href="styles.css?v=20261123-login">
 <style>
 /* AI panel uses the same palette as the rest of the portal */
 :root { --card:#fff; --line:var(--border); }
@@ -267,6 +267,10 @@
 }
 .btn-agent-send:hover { opacity: .85; }
 .btn-agent-send:disabled { opacity: .4; cursor: wait; }
+.read-only .mutate { display:none !important; }
+.read-only .ro-hide { display:none !important; }
+.ai-capabilities { margin-top:4px; }
+.ai-capabilities label { align-items:flex-start; }
 </style>
 </head>
 <body>
@@ -305,6 +309,15 @@
       <div class="ff"><label>Username</label><input type="text" id="au" value="admin" placeholder="Username" autocomplete="username"></div>
       <div class="ff"><label>Password</label><input type="password" id="ap" placeholder="Enter password" autocomplete="current-password"></div>
       <button class="btn btn-red btn-full mt" style="margin-top:14px" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket"></i> Sign In</button>
+      <div id="ms-login-box" style="display:none;margin-top:14px">
+        <div style="display:flex;align-items:center;gap:10px;color:var(--txt-muted);font-size:11px;margin-bottom:10px">
+          <span style="flex:1;height:1px;background:var(--border)"></span> OR <span style="flex:1;height:1px;background:var(--border)"></span>
+        </div>
+        <button class="btn btn-out btn-full" style="width:100%;display:flex;align-items:center;justify-content:center;gap:9px" onclick="signInMicrosoft()">
+          <i class="fa-brands fa-microsoft"></i> Sign in with Microsoft
+        </button>
+        <div id="ms-login-note" style="font-size:10.5px;color:var(--txt-muted);text-align:center;margin-top:8px"></div>
+      </div>
       <div class="login-err" id="login-err" role="alert"></div>
       <div id="admin-demo-hint" style="font-size:10.5px;color:var(--txt-muted);text-align:center;margin-top:12px">Sign in with your administrator account.</div>
     </div>
@@ -355,13 +368,13 @@
         <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-out btn-sm" onclick="exportCSV(curAdmDay)"><i class="fa-solid fa-file-csv"></i> Export Day</button>
           <button class="btn btn-out btn-sm" onclick="exportCSV(null)"><i class="fa-solid fa-download"></i> Export Full Week</button>
-          <button class="btn btn-out btn-sm" onclick="showImportModal()"><i class="fa-solid fa-file-import"></i> Import Schedule</button>
-          <button class="btn btn-red btn-sm" onclick="showAddModal()"><i class="fa-solid fa-plus"></i> Add Class</button>
+          <button class="btn btn-out btn-sm mutate" onclick="showImportModal()"><i class="fa-solid fa-file-import"></i> Import Schedule</button>
+          <button class="btn btn-red btn-sm mutate" onclick="showAddModal()"><i class="fa-solid fa-plus"></i> Add Class</button>
         </div>
       </div>
       <div class="tbl-wrap">
         <table class="dtbl">
-          <thead><tr><th>TIME</th><th>COURSE</th><th>CODE</th><th>ROOM</th><th>PROFESSOR</th><th>PROGRAM</th><th style="width:80px">ACTIONS</th></tr></thead>
+          <thead><tr><th>TIME</th><th>COURSE</th><th>CODE</th><th>ROOM</th><th>PROFESSOR</th><th>PROGRAM</th><th style="width:80px" class="ro-hide">ACTIONS</th></tr></thead>
           <tbody id="adm-sched-body"></tbody>
         </table>
       </div>
@@ -370,11 +383,11 @@
     <!-- ══ TAB: ROOMS ══ -->
     <div id="at-rooms" style="display:none">
       <div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px">
-        <button class="btn btn-red btn-sm" onclick="showAddRoomModal()"><i class="fa-solid fa-plus"></i> Add Room</button>
+        <button class="btn btn-red btn-sm mutate" onclick="showAddRoomModal()"><i class="fa-solid fa-plus"></i> Add Room</button>
       </div>
       <div class="tbl-wrap">
         <table class="dtbl">
-          <thead><tr><th>ID</th><th>NAME</th><th>FLOOR</th><th>TYPE</th><th>CAPACITY</th><th>FEATURES</th><th>PHOTOS</th><th>STATUS NOW</th><th>STATUS OVERRIDE</th></tr></thead>
+          <thead><tr><th>ID</th><th>NAME</th><th>FLOOR</th><th>TYPE</th><th>CAPACITY</th><th>FEATURES</th><th>PHOTOS</th><th>STATUS NOW</th><th class="ro-hide">STATUS OVERRIDE</th></tr></thead>
           <tbody id="adm-rooms-body"></tbody>
         </table>
       </div>
@@ -383,11 +396,11 @@
     <!-- ══ TAB: PROFESSORS ══ -->
     <div id="at-profs" style="display:none">
       <div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px">
-        <button class="btn btn-red btn-sm" onclick="showAddProfModal()"><i class="fa-solid fa-plus"></i> Add Professor</button>
+        <button class="btn btn-red btn-sm mutate" onclick="showAddProfModal()"><i class="fa-solid fa-plus"></i> Add Professor</button>
       </div>
       <div class="tbl-wrap">
         <table class="dtbl">
-          <thead><tr><th>NAME</th><th>DEPARTMENT</th><th>EMAIL</th><th>PHONE</th><th>COURSES</th><th>HRS/WEEK</th><th>ACTIONS</th></tr></thead>
+          <thead><tr><th>NAME</th><th>DEPARTMENT</th><th>EMAIL</th><th>PHONE</th><th>COURSES</th><th>HRS/WEEK</th><th class="ro-hide">ACTIONS</th></tr></thead>
           <tbody id="adm-profs-body"></tbody>
         </table>
       </div>
@@ -405,10 +418,10 @@
           <div class="ff" style="margin:0"><label>Substitute <label style="font-weight:500;margin-left:8px"><input type="checkbox" id="sb-other" onchange="sbRefreshSubs()"> include other departments</label></label><select id="sb-sub"></select></div>
           <div class="ff" style="margin:0"><label>Note (optional)</label><input type="text" id="sb-note" placeholder="e.g. Sick leave"></div>
         </div>
-        <div style="margin-top:12px"><button class="btn btn-red btn-sm" onclick="sbAssign()"><i class="fa-solid fa-user-check"></i> Assign substitute</button></div>
+        <div style="margin-top:12px"><button class="btn btn-red btn-sm mutate" onclick="sbAssign()"><i class="fa-solid fa-user-check"></i> Assign substitute</button></div>
         <div class="tbl-wrap" style="margin-top:16px">
           <table class="dtbl">
-            <thead><tr><th>ABSENT</th><th>SUBSTITUTE</th><th>DATES</th><th>CLASSES</th><th>NOTE</th><th>STATUS</th><th style="width:60px"></th></tr></thead>
+            <thead><tr><th>ABSENT</th><th>SUBSTITUTE</th><th>DATES</th><th>CLASSES</th><th>NOTE</th><th>STATUS</th><th style="width:60px" class="ro-hide"></th></tr></thead>
             <tbody id="sb-body"></tbody>
           </table>
         </div>
@@ -418,7 +431,7 @@
     <!-- ══ TAB: ANNOUNCEMENTS ══ -->
     <div id="at-announce" style="display:none">
       <div class="two-col" style="margin-bottom:20px">
-        <div class="card">
+        <div class="card ro-hide">
           <div class="card-title"><i class="fa-solid fa-plus-circle" style="color:var(--red)"></i> New Announcement</div>
           <div class="ff"><label>Title</label><input type="text" id="ann-title" placeholder="e.g. Campus Closed – National Day"></div>
           <div class="ff"><label>Message</label><textarea id="ann-msg" rows="3" placeholder="Full announcement text…"></textarea></div>
@@ -491,49 +504,60 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-title"><i class="fa-solid fa-robot" style="color:var(--red)"></i> Staff Chatbot Capabilities</div>
-          <div style="font-size:12px;color:var(--txt-muted);line-height:1.5;margin-bottom:12px">Choose what the Staff Chatbot is allowed to do for professors and staff. Changes apply to all staff accounts.</div>
-          <div class="staff-permissions" id="staff-chat-actions">
-            <label><input type="checkbox" value="query"> Answer campus questions</label>
-            <label><input type="checkbox" value="substitutes"> Suggest substitute professors</label>
-            <label><input type="checkbox" value="capacity"> Check capacity violations</label>
-            <label><input type="checkbox" value="schedule"> Manage schedule</label>
-            <label><input type="checkbox" value="rooms"> Manage rooms</label>
-            <label><input type="checkbox" value="professors"> Manage professors</label>
-            <label><input type="checkbox" value="announcements"> Publish / remove announcements</label>
+          <div class="card-title"><i class="fa-solid fa-robot" style="color:var(--red)"></i> Staff Chatbot</div>
+          <div style="font-size:12.5px;color:var(--txt-muted);line-height:1.7">
+            Each staff member has their own AI capabilities. Open <strong>Staff Access</strong> to choose
+            what their chatbot may read or change (for example: find a substitute professor when
+            someone is sick). The AI Assistant tab and its full agent stay admin-only.
           </div>
-          <button class="btn btn-green btn-sm" style="margin-top:14px" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Capabilities</button>
         </div>
       </div>
     </div>
 
     <div id="at-staff" style="display:none">
-          <div class="two-col">
-            <div class="card">
-              <div class="card-title"><i class="fa-solid fa-user-plus" style="color:var(--red)"></i> Create staff account</div>
-              <div class="ff"><label for="staff-name">Full name</label><input id="staff-name" type="text" autocomplete="name"></div>
-              <div class="ff"><label for="staff-title">Role or title</label><input id="staff-title" type="text" placeholder="e.g. Student Counselor"></div>
-              <div class="ff"><label for="staff-username">Username</label><input id="staff-username" type="text" autocomplete="off"></div>
-              <div class="ff"><label for="staff-password">Temporary password (10–128 characters)</label><input id="staff-password" type="password" autocomplete="new-password" maxlength="128"></div>
-              <div class="ff">
-                <label>Permissions</label>
-                <div class="staff-permissions">
-                  <label><input type="checkbox" value="schedule"> Manage schedule</label>
-                  <label><input type="checkbox" value="rooms"> Manage rooms</label>
-                  <label><input type="checkbox" value="professors"> Manage professors</label>
-                  <label><input type="checkbox" value="announcements"> Manage announcements</label>
-                  <label><input type="checkbox" value="reports"> View reports</label>
-                  <label><input type="checkbox" value="chatbot"> Use staff chatbot</label>
-                </div>
-              </div>
-              <button class="btn btn-red btn-sm" onclick="createStaffAccount()"><i class="fa-solid fa-user-plus"></i> Create account</button>
-            </div>
-            <div class="card">
-              <div class="card-title"><i class="fa-solid fa-users" style="color:var(--txt-muted)"></i> Staff accounts</div>
-              <div id="staff-list"><div class="empty-state">Loading staff accounts…</div></div>
-            </div>
-          </div>
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-title"><i class="fa-solid fa-microsoft" style="color:var(--red)"></i> Microsoft sign-in rules</div>
+        <div style="font-size:12px;color:var(--txt-muted);line-height:1.6;margin-bottom:12px">
+          Only Microsoft accounts with an allowed email domain can sign in. Add your university domain
+          (for example <code>ue-germany.de</code>) — leave it empty to block every domain. This filter
+          is checked on the server after Microsoft verifies the account.
         </div>
+        <div class="ff"><label>Allowed email domains (comma separated)</label>
+          <input id="ms-domains" type="text" placeholder="ue-germany.de, ue-dubai.ae">
+        </div>
+        <div class="ff">
+          <label>Default AI capabilities for new Microsoft staff</label>
+          <div class="staff-permissions ai-capabilities" id="ms-default-caps"></div>
+        </div>
+        <button class="btn btn-green btn-sm" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i> Save sign-in rules</button>
+        <span id="ms-status" style="font-size:11.5px;color:var(--txt-muted);margin-left:10px"></span>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-user-plus" style="color:var(--red)"></i> Create staff account</div>
+          <div class="ff"><label for="staff-name">Full name</label><input id="staff-name" type="text" autocomplete="name"></div>
+          <div class="ff"><label for="staff-title">Role or title</label><input id="staff-title" type="text" placeholder="e.g. Student Counselor"></div>
+          <div class="ff"><label for="staff-username">Username</label><input id="staff-username" type="text" autocomplete="off"></div>
+          <div class="ff"><label for="staff-password">Temporary password (10–128 characters)</label><input id="staff-password" type="password" autocomplete="new-password" maxlength="128"></div>
+          <div class="ff">
+            <label>Normal permissions</label>
+            <div class="staff-permissions" id="staff-normal-perms"></div>
+          </div>
+          <div class="ff">
+            <label>AI using — what the chatbot may do</label>
+            <div class="staff-permissions ai-capabilities" id="staff-ai-caps"></div>
+          </div>
+          <button class="btn btn-red btn-sm" onclick="createStaffAccount()"><i class="fa-solid fa-user-plus"></i> Create account</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-users" style="color:var(--txt-muted)"></i> Staff accounts</div>
+          <div id="staff-list"><div class="empty-state">Loading staff accounts…</div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="card-title"><i class="fa-solid fa-microsoft" style="color:var(--txt-muted)"></i> Microsoft staff accounts</div>
+        <div style="font-size:12px;color:var(--txt-muted);margin-bottom:10px">Created automatically on first Microsoft sign-in. Click Edit to change their permissions.</div>
+        <div id="sso-staff-list"><div class="empty-state">Loading…</div></div>
       </div>
     </div>
 
@@ -812,13 +836,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="import-schedule.js?v=20261120"></script>
-<script src="data.js?v=20261120-shared"></script>
+<script src="data.js?v=20261123-login"></script>
 <script>
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
-let admLoggedIn=false, curAdmDay=1, curAdmTab='schedule', loginType='admin', admUser=null, admSyncTimer=null, admSyncedAt=null;
+let admLoggedIn=false, curAdmDay=1, curAdmTab='schedule', loginType='admin', admUser=null, admSyncTimer=null, admSyncedAt=null, msClient=null;
+const VIEW_TAB={schedule:'view_schedule',rooms:'view_rooms',profs:'view_professors',announce:'view_announcements'};
+const MANAGE_TAB={schedule:'schedule',rooms:'rooms',profs:'professors',announce:'announcements'};
 
 // ═══════════════════════════════════════════════
 // CLOCK
@@ -876,11 +903,7 @@ async function doLogin(){
       password:document.getElementById('ap').value,
       loginType
     })});
-    admUser=result.user;
-    admLoggedIn=true;
-    await initDash();
-    document.getElementById('adm-login').style.display='none';
-    document.getElementById('adm-dash').style.display='';
+    await completeLogin(result);
   }catch(err){
     const loginNetworkError=!admUser&&err.message.includes('Failed to fetch');
     admUser=null;
@@ -902,6 +925,56 @@ async function doLogout(){
 }
 document.getElementById('ap').addEventListener('keydown',e=>e.key==='Enter'&&doLogin());
 
+function showLoginError(message){
+  const error=document.getElementById('login-err');
+  error.textContent=message;error.style.display='block';
+}
+async function completeLogin(result){
+  admUser=result.user;
+  admLoggedIn=true;
+  await initDash();
+  document.getElementById('adm-login').style.display='none';
+  document.getElementById('adm-dash').style.display='';
+}
+async function loadMicrosoftConfig(){
+  try{
+    const cfg=await apiRequest('/api/auth/config');
+    const box=document.getElementById('ms-login-box');
+    const note=document.getElementById('ms-login-note');
+    box.style.display=cfg.enabled?'':'none';
+    if(!cfg.enabled){note.textContent=cfg.reason||'Microsoft sign-in is not available.';return;}
+    if(window.supabase){
+      msClient=window.supabase.createClient(cfg.url,cfg.anonKey);
+      note.textContent='University Microsoft accounts only.';
+    }else{
+      note.textContent='Sign-in library could not load. Check your connection.';
+    }
+  }catch(err){
+    document.getElementById('ms-login-box').style.display='none';
+  }
+}
+async function signInMicrosoft(){
+  if(!msClient){showLoginError('Microsoft sign-in is not available right now.');return;}
+  document.getElementById('login-err').style.display='none';
+  const {error}=await msClient.auth.signInWithOAuth({
+    provider:'azure',
+    options:{scopes:'email',redirectTo:location.origin+location.pathname},
+  });
+  if(error)showLoginError(error.message);
+}
+async function handleMicrosoftReturn(){
+  const params=new URLSearchParams(location.hash.slice(1));
+  const accessToken=params.get('access_token');
+  const hashError=params.get('error_description')||params.get('error');
+  if(!accessToken&&!hashError)return;
+  history.replaceState(null,'',location.pathname);
+  if(!accessToken){showLoginError('Microsoft sign-in failed: '+hashError);return;}
+  try{
+    const result=await apiRequest('/api/auth/microsoft',{method:'POST',body:JSON.stringify({accessToken})});
+    await completeLogin(result);
+  }catch(err){showLoginError(err.message);}
+}
+
 // ═══════════════════════════════════════════════
 // DASHBOARD INIT
 // ═══════════════════════════════════════════════
@@ -917,7 +990,9 @@ async function initDash(){
   document.getElementById('adm-user-label').textContent=isAdmin?'admin':`${admUser.displayName} · ${admUser.title}`;
   document.querySelectorAll('#adm-tabs .a-tab').forEach(tab=>{
     const permission=tab.dataset.permission;
-    tab.style.display=permission==='admin'?(isAdmin?'':'none'):(isAdmin||permissions.has(permission)?'':'none');
+    const viewPermission=VIEW_TAB[tab.dataset.at];
+    const visible=isAdmin||permissions.has(permission)||!!(viewPermission&&permissions.has(viewPermission));
+    tab.style.display=visible?'':'none';
   });
   updateQuickStats();
   populateDropdowns();
@@ -976,14 +1051,59 @@ function setTab(t){
   ['schedule','rooms','profs','announce','reports','settings','staff','ai','staffchat'].forEach(id=>{
     document.getElementById(`at-${id}`).style.display=id===t?'':'none';
   });
+  const perms=admUser.permissions||[];
+  const viewPerm=VIEW_TAB[t];
+  const readOnly=!isAdmin&&!!viewPerm&&perms.includes(viewPerm)&&!perms.includes(MANAGE_TAB[t]);
+  document.getElementById(`at-${t}`).classList.toggle('read-only',readOnly);
   if(t==='rooms')    renderAdmRooms();
   if(t==='profs')    renderAdmProfs();
   if(t==='announce') renderAnnouncements();
   if(t==='reports')  renderReports();
   if(t==='settings') loadSettings();
-  if(t==='staff')    loadStaffAccounts();
+  if(t==='staff')    {loadStaffAccounts();loadSsoStaff();renderPermissionPickers();loadMicrosoftSettings();}
 }
 
+function staffRow(container,user,onEdit,onRemove){
+  const row=document.createElement('div');
+  row.className='staff-account';
+  const details=document.createElement('div');
+  const name=document.createElement('strong');
+  name.textContent=user.displayName;
+  const info=document.createElement('div');
+  info.className='staff-account-meta';
+  const perms=(user.permissions||[]).join(', ')||'no tab access';
+  const caps=(user.aiActions||[]).join(', ')||'no AI access';
+  info.textContent=`${user.title||'Staff'} · ${user.username} · ${perms} · AI: ${caps}`;
+  details.append(name,info);
+  const actions=document.createElement('div');
+  actions.style.cssText='display:flex;gap:6px;flex-shrink:0';
+  const edit=document.createElement('button');
+  edit.type='button';edit.className='btn btn-out btn-sm';edit.textContent='Edit';
+  edit.addEventListener('click',onEdit);
+  const remove=document.createElement('button');
+  remove.type='button';remove.className='btn btn-out btn-sm';remove.textContent='Remove';
+  remove.addEventListener('click',onRemove);
+  actions.append(edit,remove);
+  row.append(details,actions);
+  container.appendChild(row);
+}
+function openStaffEditor(container,user,save,refresh){
+  container.replaceChildren();
+  const box=document.createElement('div');
+  box.style.cssText='padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-soft);margin-bottom:10px';
+  box.innerHTML=`<div style="font-size:12.5px;font-weight:700;margin-bottom:10px">${user.displayName} — ${user.username}</div>
+    <div class="ff" style="margin-bottom:8px"><label>Normal permissions</label><div class="staff-permissions" id="edit-normal">${checkboxList(NORMAL_PERMISSIONS,user.permissions)}</div></div>
+    <div class="ff" style="margin-bottom:10px"><label>AI using — what the chatbot may do</label><div class="staff-permissions ai-capabilities" id="edit-caps">${checkboxList(AI_CAPABILITIES,user.aiActions)}</div></div>
+    <div style="display:flex;gap:8px"><button class="btn btn-green btn-sm" id="edit-save">Save</button><button class="btn btn-out btn-sm" id="edit-cancel">Cancel</button></div>`;
+  container.appendChild(box);
+  box.querySelector('#edit-cancel').onclick=refresh;
+  box.querySelector('#edit-save').onclick=async()=>{
+    const permissions=[...box.querySelectorAll('#edit-normal input:checked')].map(i=>i.value);
+    const aiActions=[...box.querySelectorAll('#edit-caps input:checked')].map(i=>i.value);
+    try{await save(permissions,aiActions);showToast('Permissions saved ✓');await refresh();}
+    catch(err){showToast(err.message);}
+  };
+}
 async function loadStaffAccounts(){
   const container=document.getElementById('staff-list');
   container.textContent='Loading staff accounts…';
@@ -991,41 +1111,43 @@ async function loadStaffAccounts(){
     const {staff}=await apiRequest('/api/admin/staff');
     container.replaceChildren();
     if(staff.length===0){container.textContent='No staff accounts have been created.';return;}
-    staff.forEach(user=>{
-      const row=document.createElement('div');
-      row.className='staff-account';
-      const details=document.createElement('div');
-      const name=document.createElement('strong');
-      name.textContent=user.displayName;
-      const info=document.createElement('div');
-      info.className='staff-account-meta';
-      info.textContent=`${user.title} · @${user.username} · ${user.permissions.join(', ')}`;
-      details.append(name,info);
-      const remove=document.createElement('button');
-      remove.type='button';
-      remove.className='btn btn-out btn-sm';
-      remove.textContent='Remove';
-      remove.addEventListener('click',()=>deleteStaffAccount(user.id));
-      row.append(details,remove);
-      container.appendChild(row);
-    });
-  }catch(err){
-    container.textContent=err.message;
-  }
+    staff.forEach(user=>staffRow(container,user,
+      ()=>openStaffEditor(container,user,
+        (permissions,aiActions)=>apiRequest('/api/admin/staff',{method:'PUT',body:JSON.stringify({id:user.id,permissions,aiActions})}),
+        loadStaffAccounts),
+      ()=>deleteStaffAccount(user.id)));
+  }catch(err){container.textContent=err.message;}
+}
+async function loadSsoStaff(){
+  const container=document.getElementById('sso-staff-list');
+  if(!container)return;
+  container.textContent='Loading…';
+  try{
+    const {staff,configured}=await apiRequest('/api/admin/sso-staff');
+    if(!configured){container.textContent='Shared Supabase storage is not configured, so Microsoft accounts cannot be stored.';return;}
+    container.replaceChildren();
+    if(staff.length===0){container.textContent='No Microsoft staff have signed in yet.';return;}
+    staff.forEach(user=>staffRow(container,user,
+      ()=>openStaffEditor(container,user,
+        (permissions,aiActions)=>apiRequest('/api/admin/sso-staff',{method:'PUT',body:JSON.stringify({email:user.email,displayName:user.displayName,title:user.title,permissions,aiActions})}),
+        loadSsoStaff),
+      ()=>removeSsoStaff(user.email)));
+  }catch(err){container.textContent=err.message;}
 }
 async function createStaffAccount(){
-  const permissions=[...document.querySelectorAll('.staff-permissions input:checked')].map(input=>input.value);
+  const permissions=[...document.querySelectorAll('#staff-normal-perms input:checked')].map(input=>input.value);
+  const aiActions=[...document.querySelectorAll('#staff-ai-caps input:checked')].map(input=>input.value);
   const account={
     displayName:document.getElementById('staff-name').value.trim(),
     title:document.getElementById('staff-title').value.trim(),
     username:document.getElementById('staff-username').value.trim(),
     password:document.getElementById('staff-password').value,
-    permissions
+    permissions,aiActions
   };
   try{
     await apiRequest('/api/admin/staff',{method:'POST',body:JSON.stringify(account)});
     ['staff-name','staff-title','staff-username','staff-password'].forEach(id=>document.getElementById(id).value='');
-    document.querySelectorAll('.staff-permissions input').forEach(input=>input.checked=false);
+    document.querySelectorAll('#staff-normal-perms input, #staff-ai-caps input').forEach(input=>input.checked=false);
     await loadStaffAccounts();
     showToast('Staff account created');
   }catch(err){showToast(err.message);}
@@ -1036,6 +1158,14 @@ async function deleteStaffAccount(id){
     await apiRequest(`/api/admin/staff?id=${encodeURIComponent(id)}`,{method:'DELETE'});
     await loadStaffAccounts();
     showToast('Staff account removed');
+  }catch(err){showToast(err.message);}
+}
+async function removeSsoStaff(email){
+  if(!confirm(`Remove Microsoft access for ${email}?`))return;
+  try{
+    await apiRequest(`/api/admin/sso-staff?email=${encodeURIComponent(email)}`,{method:'DELETE'});
+    await loadSsoStaff();
+    showToast('Microsoft staff account removed');
   }catch(err){showToast(err.message);}
 }
 
@@ -1058,9 +1188,9 @@ function renderAdmSched(){
       <td><strong>${e.roomId}</strong></td>
       <td>${effProfHtml(e)}</td>
       <td><span class="prog-tag">${e.program}</span></td>
-      <td style="display:flex;gap:5px">
-        <button class="btn btn-out btn-sm" onclick="editEntry(${e.id})" title="Edit"><i class="fa-solid fa-pencil"></i></button>
-        <button class="btn btn-out btn-sm" onclick="delEntry(${e.id})" title="Delete" style="color:var(--red);border-color:#FECACA!important"><i class="fa-solid fa-trash-can"></i></button>
+      <td class="ro-hide" style="display:flex;gap:5px">
+        <button class="btn btn-out btn-sm mutate" onclick="editEntry(${e.id})" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+        <button class="btn btn-out btn-sm mutate" onclick="delEntry(${e.id})" title="Delete" style="color:var(--red);border-color:#FECACA!important"><i class="fa-solid fa-trash-can"></i></button>
       </td>
     </tr>`).join('');
 }
@@ -1113,9 +1243,9 @@ function renderAdmRooms(){
       <td>${r.type}</td>
       <td>${r.capacity}</td>
       <td style="font-size:11px;color:var(--txt-muted)">${(r.features||[]).join(', ')||'—'}</td>
-      <td><div class="rp-thumbs">${(ROOM_PHOTOS[r.id]||[]).map((p,i)=>`<div class="rp-thumb"><img src="${p}" alt=""><button title="Remove" onclick="removeRoomPhoto('${r.id}',${i})">×</button></div>`).join('')}<label class="rp-add"><i class="fa-solid fa-camera"></i> Add<input type="file" accept="image/*" multiple hidden onchange="uploadRoomPhotos('${r.id}',this)"></label></div></td>
+      <td><div class="rp-thumbs">${(ROOM_PHOTOS[r.id]||[]).map((p,i)=>`<div class="rp-thumb"><img src="${p}" alt=""><button class="mutate" title="Remove" onclick="removeRoomPhoto('${r.id}',${i})">×</button></div>`).join('')}<label class="rp-add mutate"><i class="fa-solid fa-camera"></i> Add<input type="file" accept="image/*" multiple hidden onchange="uploadRoomPhotos('${r.id}',this)"></label></div></td>
       <td><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;background:${stC[st.status]||'var(--border)'}">${stL[st.status]||st.status}${ov?' ⚡':''}</span></td>
-      <td>
+      <td class="ro-hide">
         <select style="font-size:12px;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--txt-base);cursor:pointer"
           onchange="setRoomOverride('${r.id}',this.value)">${selOpts}</select>
       </td>
@@ -1264,7 +1394,7 @@ function sbRenderList(){
     const codes=[...new Set(SCHEDULE.filter(s=>r.entryIds?r.entryIds.includes(s.id):s.professor===r.absent).map(s=>s.code))].join(', ')||'—';
     return `<tr><td>${r.absent}</td><td><b>${r.sub}</b></td><td style="white-space:nowrap">${r.from}${r.to!==r.from?' → '+r.to:''}</td><td style="font-size:11.5px">${codes}</td><td style="font-size:11.5px;color:var(--txt-muted)">${(r.note||'—').replace(/</g,'&lt;')}</td>
       <td><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;background:${st[1]};color:${st[2]}">${st[0]}</span></td>
-      <td><button class="btn btn-out btn-sm" onclick="sbDelete(${r.id})" title="Cancel" style="color:var(--red);border-color:#FECACA!important"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
+      <td class="ro-hide"><button class="btn btn-out btn-sm mutate" onclick="sbDelete(${r.id})" title="Cancel" style="color:var(--red);border-color:#FECACA!important"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
   }).join('');
 }
 
@@ -1285,8 +1415,8 @@ function renderAdmProfs(){
       <td style="color:var(--txt-muted)">${p.phone}</td>
       <td style="font-size:12px">${courses.map(c=>`<span class="code-pill" style="margin:1px;font-size:9px">${c}</span>`).join('')||'<span style="color:var(--txt-muted)">No classes</span>'}</td>
       <td style="font-weight:700">${hrs.toFixed(1)}h</td>
-      <td>
-        <button class="btn btn-out btn-sm" onclick="delProf(${p.id})" style="color:var(--red);border-color:#FECACA!important"><i class="fa-solid fa-trash-can"></i></button>
+      <td class="ro-hide">
+        <button class="btn btn-out btn-sm mutate" onclick="delProf(${p.id})" style="color:var(--red);border-color:#FECACA!important"><i class="fa-solid fa-trash-can"></i></button>
       </td>
     </tr>`;
   }).join('');
@@ -1319,7 +1449,7 @@ function renderAnnouncements(){
           <div style="font-size:12px;color:var(--txt-muted);margin-top:2px">${a.msg}</div>
           <div style="font-size:11px;color:var(--txt-muted);margin-top:4px">Posted ${a.created} · Expires ${a.expires}</div>
         </div>
-        <button class="btn btn-out btn-sm" onclick="delAnn(${a.id})" style="color:var(--red);border-color:#FECACA!important;flex-shrink:0"><i class="fa-solid fa-trash-can"></i></button>
+        <button class="btn btn-out btn-sm mutate" onclick="delAnn(${a.id})" style="color:var(--red);border-color:#FECACA!important;flex-shrink:0"><i class="fa-solid fa-trash-can"></i></button>
       </div>`;
     }).join('');
 }
@@ -1389,40 +1519,69 @@ function renderReports(){
 // ═══════════════════════════════════════════════
 // TAB 6 — SETTINGS
 // ═══════════════════════════════════════════════
-const STAFF_CHAT_GROUPS={
-  query:['query'],
-  substitutes:['find_substitute'],
-  capacity:['check_capacity'],
-  schedule:['create_entry','update_entry','delete_entry','delete_multiple'],
-  rooms:['create_room','update_room','delete_room'],
-  professors:['create_professor','update_professor','delete_professor'],
-  announcements:['create_announcement','delete_announcement'],
+const NORMAL_PERMISSIONS={
+  view_schedule:'View schedule & classes',
+  view_rooms:'View rooms',
+  view_professors:'View professors',
+  view_announcements:'View announcements',
+  reports:'View reports',
+  schedule:'Manage schedule',
+  rooms:'Manage rooms',
+  professors:'Manage professors',
+  announcements:'Manage announcements',
+  chatbot:'Use staff chatbot',
 };
+const AI_CAPABILITIES={
+  read_data:'Read campus data (answer questions)',
+  substitutes:'Find a substitute professor (e.g. "I am sick")',
+  capacity:'Check room capacity',
+  schedule:'Change the schedule',
+  rooms:'Manage rooms',
+  professors:'Manage professors',
+  announcements:'Publish announcements',
+};
+function checkboxList(labels,selected){
+  const set=new Set(selected||[]);
+  return Object.entries(labels).map(([value,label])=>`<label><input type="checkbox" value="${value}"${set.has(value)?' checked':''}> ${label}</label>`).join('');
+}
+function renderPermissionPickers(){
+  const normal=document.getElementById('staff-normal-perms');
+  if(normal&&!normal.children.length)normal.innerHTML=checkboxList(NORMAL_PERMISSIONS,[]);
+  const caps=document.getElementById('staff-ai-caps');
+  if(caps&&!caps.children.length)caps.innerHTML=checkboxList(AI_CAPABILITIES,['read_data']);
+  const def=document.getElementById('ms-default-caps');
+  if(def&&!def.children.length)def.innerHTML=checkboxList(AI_CAPABILITIES,['read_data','substitutes','capacity']);
+}
+function loadMicrosoftSettings(){
+  const ms=PORTAL_SETTINGS.microsoftLogin||{};
+  const domains=document.getElementById('ms-domains');
+  if(domains)domains.value=(ms.domains||[]).join(', ');
+  const defCaps=document.getElementById('ms-default-caps');
+  if(defCaps)defCaps.innerHTML=checkboxList(AI_CAPABILITIES,ms.defaultCapabilities||['read_data','substitutes','capacity']);
+}
 function loadSettings(){
   document.getElementById('set-sem').value=PORTAL_SETTINGS.semesterName;
   document.getElementById('set-start').value=PORTAL_SETTINGS.semesterStart;
   document.getElementById('set-end').value=PORTAL_SETTINGS.semesterEnd;
   document.getElementById('set-campus').value=PORTAL_SETTINGS.campusName;
   document.getElementById('set-addr').value=PORTAL_SETTINGS.campusAddress;
-  const enabled=new Set(PORTAL_SETTINGS.staffChatActions||[]);
-  document.querySelectorAll('#staff-chat-actions input').forEach(cb=>{
-    cb.checked=STAFF_CHAT_GROUPS[cb.value].every(action=>enabled.has(action));
-  });
+  loadMicrosoftSettings();
   const info=document.getElementById('set-info');
   if(info)info.innerHTML=`Version: <strong>1.0.0</strong><br>Rooms: <strong>${ROOMS.length}</strong><br>Total schedule entries: <strong>${SCHEDULE.length}</strong><br>Built for: <strong>${PORTAL_SETTINGS.campusName}</strong>`;
 }
 async function saveSettings(){
-  PORTAL_SETTINGS.semesterName=document.getElementById('set-sem').value;
-  PORTAL_SETTINGS.semesterStart=document.getElementById('set-start').value;
-  PORTAL_SETTINGS.semesterEnd=document.getElementById('set-end').value;
-  PORTAL_SETTINGS.campusName=document.getElementById('set-campus').value;
-  PORTAL_SETTINGS.campusAddress=document.getElementById('set-addr').value;
-  const selected=[];
-  document.querySelectorAll('#staff-chat-actions input:checked').forEach(cb=>{
-    selected.push(...STAFF_CHAT_GROUPS[cb.value]);
+  const fields={semesterName:'set-sem',semesterStart:'set-start',semesterEnd:'set-end',campusName:'set-campus',campusAddress:'set-addr'};
+  Object.entries(fields).forEach(([key,id])=>{
+    const value=document.getElementById(id).value.trim();
+    if(value)PORTAL_SETTINGS[key]=value;
   });
-  PORTAL_SETTINGS.staffChatActions=[...new Set(selected)];
-  if(await persistChanges('settings'))showToast('Settings saved ✓');
+  const domains=(document.getElementById('ms-domains').value||'').split(',').map(s=>s.trim().toLowerCase().replace(/^@/,'')).filter(Boolean);
+  const defaultCapabilities=[...document.querySelectorAll('#ms-default-caps input:checked')].map(cb=>cb.value);
+  PORTAL_SETTINGS.microsoftLogin={...(PORTAL_SETTINGS.microsoftLogin||{}),enabled:true,domains,defaultCapabilities,defaultPermissions:['chatbot']};
+  if(await persistChanges('settings')){
+    showToast('Settings saved ✓');
+    loadMicrosoftConfig();
+  }
 }
 async function changePassword(){
   const cur=document.getElementById('set-cur').value;
@@ -2000,6 +2159,10 @@ async function aiAnalyze() {
     btn.disabled = false;
   }
 }
+
+renderPermissionPickers();
+loadMicrosoftConfig();
+handleMicrosoftReturn();
 </script>
 <script src="import-ui.js?v=20261120"></script>
 </body>
