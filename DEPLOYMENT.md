@@ -5,13 +5,13 @@ Your $200 lasts **33 months** at that size.
 
 ---
 
-## Shared admin changes on Vercel
+## Shared admin changes
 
-The portal stores admin edits in Supabase so they are available to every browser. Before deploying to Vercel:
+The portal stores admin edits in Supabase so they are available to every browser.
 
 1. Create a Supabase project and run [`db/supabase-shared-state.sql`](db/supabase-shared-state.sql) in its SQL Editor.
-2. In Vercel project settings, set `ADMIN_USERNAME` and `ADMIN_PASSWORD` for admin login, and add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from the Supabase project. Keep the service-role key server-only; do not use a `VITE_` variable or expose it in browser code.
-3. Redeploy the Vercel project so the API functions receive those environment variables.
+2. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the server environment. For Vultr, add them as GitHub Actions secrets as described below; for Vercel, add them in project settings and redeploy.
+3. Keep the service-role key server-only; never expose it in browser code or use a `VITE_` prefix.
 
 The public portal reads shared changes on load and refreshes them periodically. Admin saves require a valid admin/staff session and the matching permission. On the first administrator login, existing data from that browser's legacy local storage is imported into Supabase.
 
@@ -41,14 +41,14 @@ ssh root@YOUR_VULTR_IP
 Clone the repository so the setup script can install the site's Nginx configuration:
 ```bash
 apt update && apt install -y git
-git clone https://github.com/astrax-gif/Ue-portal.git /var/www/ue-portal
+git clone https://github.com/vortexofficialgroup/uedubai.campusyncer.git /var/www/ue-portal
 cd /var/www/ue-portal
 bash scripts/vultr-setup.sh
 ```
 
 The script installs Nginx, Node.js 20, and PM2, configures the firewall and Nginx, and prints your next steps.
 
-The deployment workflow starts the API, preserves the existing Nginx domain configuration while adding the `/api/` proxy if needed, tests the Nginx configuration, and checks both the API and proxy. If `/etc/ue-portal.env` is missing, it creates the file from the `ADMIN_PASSWORD` and `ADMIN_SECRET` Actions secrets. It also syncs `GEMINI_API_KEY` from Actions secrets to the server environment when configured.
+The deployment workflow aligns the server checkout with this repository, starts the API, preserves the existing Nginx domain configuration while adding the `/api/` proxy if needed, tests the Nginx configuration, and checks both the API and proxy. If `/etc/ue-portal.env` is missing, it creates the file from the `ADMIN_PASSWORD` and `ADMIN_SECRET` Actions secrets. It syncs `GEMINI_API_KEY`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY` from Actions secrets when configured.
 
 Keep `/etc/ue-portal.env`, `/var/lib/ue-portal/staff-users.json`, and `/var/lib/ue-portal/admin-password.json` private; back up the two data files. The API environment file and account data are stored on the VPS, not in the web root.
 
@@ -68,6 +68,8 @@ Add these deployment secrets:
 | `ADMIN_PASSWORD` | Initial admin login password (generated during automatic setup if needed) |
 | `ADMIN_SECRET` | Random HMAC signing secret (generated during automatic setup if needed) |
 | `GEMINI_API_KEY` | API key for the Gemini-powered admin assistant |
+| `SUPABASE_URL` | Supabase project URL for shared portal state |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service-role key for server-side shared-state access |
 
 > **Never** paste your private key anywhere except GitHub Secrets.
 > `VULTR_USERNAME` and `VULTR_PASSWORD` are also accepted for existing deployments; an SSH key is preferred.

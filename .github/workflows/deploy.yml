@@ -15,12 +15,15 @@ jobs:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DEPLOY_REPOSITORY: ${{ github.repository }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         with:
           host: ${{ secrets.VULTR_HOST }}
           username: ${{ secrets.VULTR_USER || secrets.VULTR_USERNAME }}
           password: ${{ secrets.VULTR_PASSWORD }}
           key: ${{ secrets.VULTR_SSH_KEY }}
-          envs: ADMIN_PASSWORD,ADMIN_SECRET,GEMINI_API_KEY
+          envs: ADMIN_PASSWORD,ADMIN_SECRET,GEMINI_API_KEY,DEPLOY_REPOSITORY,SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY
           script: |
             set -e
             if [ -d /var/www/ue-portal ]; then
@@ -31,6 +34,7 @@ jobs:
               echo "UE Portal checkout not found under /var/www." >&2
               exit 1
             fi
+            git remote set-url origin "https://github.com/${DEPLOY_REPOSITORY}.git"
             git fetch origin main
             if git merge-base --is-ancestor HEAD origin/main; then
               git merge --ff-only origin/main
@@ -64,6 +68,15 @@ jobs:
             else
               echo "Warning: GEMINI_API_KEY Actions secret is not configured; AI requests will fail."
             fi
+            if [ -n "$SUPABASE_URL" ]; then
+              sed -i '/^SUPABASE_URL=/d' /etc/ue-portal.env
+              printf 'SUPABASE_URL=%s\n' "$SUPABASE_URL" >> /etc/ue-portal.env
+            fi
+            if [ -n "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+              sed -i '/^SUPABASE_SERVICE_ROLE_KEY=/d' /etc/ue-portal.env
+              printf 'SUPABASE_SERVICE_ROLE_KEY=%s\n' "$SUPABASE_SERVICE_ROLE_KEY" >> /etc/ue-portal.env
+            fi
+            chmod 600 /etc/ue-portal.env
             set -a
             . /etc/ue-portal.env
             set +a
@@ -142,6 +155,7 @@ jobs:
 
             checks = (
                 ("API", "http://127.0.0.1:3000/api/rooms", None),
+                ("Shared state", "http://127.0.0.1:3000/api/state", None),
                 ("Nginx", "http://127.0.0.1/api/rooms", host),
             )
             for label, url, host_header in checks:
