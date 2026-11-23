@@ -525,7 +525,7 @@
         <!-- Header -->
         <div class="ai-panel-header">
           <div class="ai-brand"><i class="fa-solid fa-brain"></i> AI Admin Assistant</div>
-          <div class="ai-subtitle">Powered by DeepSeek · Understands your campus data in real time</div>
+          <div class="ai-subtitle">Powered by Gemini (free tier) · Understands your campus data in real time</div>
         </div>
 
         <!-- 3 feature cards -->
@@ -581,8 +581,9 @@
             </div>
             <select id="agent-model" class="agent-model-select" aria-label="AI model"
               onchange="agentSetModel(this.value)">
-              <option value="deepseek-flash">DeepSeek Flash</option>
-              <option value="deepseek-v4-pro">DeepSeek Pro</option>
+              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (free)</option>
+              <option value="gemini-3.8-flash">Gemini 3.8 Flash (free)</option>
+              <option value="gemini-4-hydrogen">Gemini 4 Hydrogen (free)</option>
             </select>
           </div>
 
@@ -1450,17 +1451,18 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 
 let agentHistory = [];
 let agentPending = null; // pending action awaiting confirmation
-let agentModel = 'deepseek-flash';
+const AI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-4-hydrogen'];
+let agentModel = 'gemini-3.5-flash-lite';
 
 function agentSetModel(model) {
-  agentModel = model;
-  try { localStorage.setItem('campusyncer-agent-model', model); } catch (_) {}
+  agentModel = AI_MODELS.includes(model) ? model : AI_MODELS[0];
+  try { localStorage.setItem('campusyncer-agent-model', agentModel); } catch (_) {}
 }
 
 function agentInitModel() {
   let saved = null;
   try { saved = localStorage.getItem('campusyncer-agent-model'); } catch (_) {}
-  if (['deepseek-flash', 'deepseek-v4-pro'].includes(saved)) {
+  if (AI_MODELS.includes(saved)) {
     agentModel = saved;
   }
   const select = document.getElementById('agent-model');

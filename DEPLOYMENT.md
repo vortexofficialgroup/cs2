@@ -15,11 +15,15 @@ The Vercel project is connected to this GitHub repository and deploys pushes to
    - `ADMIN_PASSWORD` — a strong initial administrator password.
    - `ADMIN_SECRET` — a long, random secret used to sign administrator
      sessions.
-3. If using the DeepSeek-powered chatbot and admin assistant, also add
-   `DEEPSEEK_API_KEY` (from https://platform.deepseek.com/api_keys). Leave
-   `DEEPSEEK_MODEL` unset to use the default model, or set it to
-   `deepseek-flash` / `deepseek-v4-pro`.
-4. Redeploy after adding or changing environment variables.
+3. For the Gemini-powered chatbot and admin assistant, add `GEMINI_API_KEY`.
+   Create a free key at https://aistudio.google.com/api-keys. Leave
+   `GEMINI_MODEL` unset to use the default free model
+   (`gemini-3.5-flash-lite`), or set it to `gemini-3.8-flash` or
+   `gemini-4-hydrogen`. Avoid the legacy `gemini-2.5-*` models: Google now
+   limits them to projects that used them before the change.
+4. Optional, paid: add `DEEPSEEK_API_KEY` as a fallback. DeepSeek requires a
+   prepaid balance — it is not free.
+5. Redeploy after adding or changing environment variables.
 
 Keep all keys and passwords in Vercel's environment-variable settings. Never
 put the Supabase service-role key in browser code or expose it with a
