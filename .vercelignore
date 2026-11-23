@@ -12,8 +12,7 @@ DEPLOYMENT.md
 LICENSE
 *.md
 
-# Server entry point (Vercel uses /api/ instead)
-data-server.js
+# Server entry point and data (Vercel API handlers import these modules)
 import-schedule.js
 import-ui.js
 
