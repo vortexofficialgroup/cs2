@@ -106,7 +106,7 @@ input,select,textarea{font-family:inherit}
 .ci-room{font-size:12px;font-weight:700;color:var(--txt-mid);background:var(--bg);padding:2px 8px;border-radius:4px;flex-shrink:0;white-space:nowrap}
 
 /* ── FLOOR PLAN ─────── */
-.fp-wrap{position:relative;margin:0 -18px}
+.fp-wrap{position:relative;margin:0}
 .rooms-ctrl{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .floor-tabs{display:flex;background:#fff;border:1.5px solid var(--border);border-radius:8px;overflow:hidden}
 .f-tab{padding:7px 18px;font-size:12.5px;font-weight:500;color:var(--txt-muted);cursor:pointer;border-right:1.5px solid var(--border);transition:.12s}
@@ -301,13 +301,24 @@ input,select,textarea{font-family:inherit}
 
 
 /* ── Floor plan on dashboard ── */
-.fp-card{margin-bottom:22px;padding:18px}
-.fp-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.fp-card{margin-bottom:18px;padding:16px 18px}
+.fp-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
 .fp-head .legend{margin-left:auto}
-.fp-hint{font-size:11.5px;color:var(--txt-muted);text-align:center;margin:10px 0 4px}
+.fp-body{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(235px,.85fr);gap:18px;align-items:start}
+.fp-map,.fp-free{min-width:0}
+.fp-map .fp-floor-label{margin-bottom:6px}
+.fp-map #fp-svg{max-width:100%;margin:0 auto}
+.fp-hint{font-size:11px;color:var(--txt-muted);text-align:center;margin:6px 0 0}
+.fp-free{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px}
+.fp-free .free-head{margin:0 0 10px;padding:0;border:none;font-size:12.5px}
+.fp-free .free-now{display:grid;grid-template-columns:1fr;gap:8px;max-height:285px;overflow-y:auto;padding-right:2px}
 .free-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--txt-mid);margin:14px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
 .free-count{background:var(--green-bg);color:var(--green);font-size:11.5px;font-weight:800;padding:2px 9px;border-radius:20px}
 .free-now{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+@media(max-width:1050px){
+  .fp-body{grid-template-columns:1fr}
+  .fp-free .free-now{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));max-height:none}
+}
 .free-chip{display:flex;align-items:center;gap:12px;background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:10px;padding:10px 12px;cursor:pointer;transition:.12s}
 .free-chip:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
 .free-chip.soon{background:var(--yellow-bg);border-color:#FDE68A}

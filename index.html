@@ -96,14 +96,20 @@
           <div class="leg"><div class="leg-dot" style="background:#7DD3FC;border-radius:2px"></div>Library / Cafe</div>
         </div>
       </div>
-      <div class="fp-floor-label" id="fp-floor-label"></div>
-      <div class="fp-wrap">
-        <svg id="fp-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
-        <div id="fp-tt"></div>
+      <div class="fp-body">
+        <div class="fp-map">
+          <div class="fp-floor-label" id="fp-floor-label"></div>
+          <div class="fp-wrap">
+            <svg id="fp-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+            <div id="fp-tt"></div>
+          </div>
+          <div class="fp-hint"><i class="fa-solid fa-hand-pointer"></i> Click any room for details</div>
+        </div>
+        <div class="fp-free">
+          <div class="free-head"><i class="fa-solid fa-door-open" style="color:var(--green)"></i> Free rooms right now <span class="free-count" id="free-count">0</span></div>
+          <div class="free-now" id="free-now"></div>
+        </div>
       </div>
-      <div class="fp-hint"><i class="fa-solid fa-hand-pointer"></i> Click any room for details</div>
-      <div class="free-head"><i class="fa-solid fa-door-open" style="color:var(--green)"></i> Free rooms right now <span class="free-count" id="free-count">0</span></div>
-      <div class="free-now" id="free-now"></div>
     </div>
 
     <div class="two-col">
@@ -477,7 +483,7 @@ function renderFP(){
   });
 
   fpSvg.setAttribute('viewBox',`0 0 ${plan.w} ${plan.h}`);
-  fpSvg.setAttribute('style','width:100%;height:auto;max-width:none;display:block;margin:0 auto');
+  fpSvg.setAttribute('style','width:100%;height:auto;max-width:100%;display:block;margin:0 auto');
   fpSvg.innerHTML=svg;
 }
 
