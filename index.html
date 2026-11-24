@@ -384,7 +384,11 @@ function csCanSeeEntry(e){
   if(sc==='other')return true;
   return sc===ec;
 }
-function csSchedule(){return SCHEDULE.filter(csCanSeeEntry);}
+function csSchedule(){
+  const matched=SCHEDULE.filter(csCanSeeEntry);
+  // A degree with no matching entries should never leave an empty schedule.
+  return matched.length||!SCHEDULE.length?matched:SCHEDULE;
+}
 function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function escAttr(s){return esc(s).replace(/`/g,'&#96;');}
 
@@ -1398,7 +1402,7 @@ async function csSaveSetup(){
     document.getElementById('cs-setup-overlay').classList.remove('open');
     csRenderAccount();
     showToast('Setup saved ✓');
-    if(student){renderDashboard();if(curView==='schedule')renderSchedTable();}
+    if(student){renderDash();if(curView==='schedule')renderSchedTable();}
   }catch(err){csError('cs-setup-error',err.message);}
   finally{btn.disabled=false;}
 }
@@ -1653,7 +1657,7 @@ async function csSaveAccount(){
       csAccountUser=data.user;
     }
     csRenderAccount();csCloseAccount();showToast('Account updated ✓');
-    if(isStudent){renderDashboard();if(curView==='schedule')renderSchedTable();}
+    if(isStudent){renderDash();if(curView==='schedule')renderSchedTable();}
   }catch(err){csError('cs-account-error',err.message);}
   finally{btn.disabled=false;}
 }
