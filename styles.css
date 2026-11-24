@@ -120,7 +120,7 @@ input,select,textarea{font-family:inherit}
 .fp-container{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:16px;overflow:hidden;position:relative}
 .fp-floor-label{font-size:11px;font-weight:700;color:var(--txt-muted);letter-spacing:.05em;margin-bottom:10px;text-transform:uppercase}
 #fp-svg{width:100%;max-width:none;height:auto;display:block;cursor:default;background:transparent}
-.fp-room{transition:opacity .15s}
+
 #fp-tt{display:none;position:absolute;background:#1F2937;color:#fff;border-radius:8px;padding:11px 14px;font-size:12px;line-height:1.5;z-index:50;pointer-events:none;max-width:230px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 
 /* ── COURSE SEARCH ─────── */
@@ -349,7 +349,7 @@ input,select,textarea{font-family:inherit}
 .imp-in{font:inherit;font-size:12px;padding:5px 7px;border:1.5px solid var(--border);border-radius:6px;background:#fff;color:var(--txt)}
 .imp-in:focus{outline:none;border-color:var(--red)}
 
-.fp-room{transform-box:fill-box;transform-origin:center;transition:transform .15s,opacity .15s}
+
 
 
 /* Room photo gallery (portal modal) */
@@ -367,17 +367,9 @@ input,select,textarea{font-family:inherit}
 .rp-thumb button{position:absolute;top:0;right:0;border:none;background:rgba(220,38,38,.9);color:#fff;font-size:10px;width:16px;height:16px;cursor:pointer;line-height:1}
 .rp-add{font-size:11.5px;font-weight:700;color:var(--red);cursor:pointer;white-space:nowrap}
 
-/* Floor plan: room cards flip on hover */
-#fp-svg text,#fp-svg circle,#fp-svg .fp-room,#fp-svg .fp-back rect,#fp-svg .fp-front rect:not(.fp-room){pointer-events:none}
+/* Floor plan: static cards, click opens room details (no hover/flip animation) */
+#fp-svg text,#fp-svg circle,#fp-svg .fp-room,#fp-svg .fp-front rect:not(.fp-room){pointer-events:none}
 #fp-svg .fp-hit{pointer-events:all;cursor:pointer}
-#fp-svg .fp-front,#fp-svg .fp-back{transition:transform .2s ease-in-out;transform-origin:center;transform-box:fill-box}
-#fp-svg .fp-front{transition-delay:.2s}
-#fp-svg .fp-back{transform:scaleX(0)}
-#fp-svg .fp-card:hover .fp-front{transform:scaleX(0);transition-delay:0s}
-#fp-svg .fp-card:hover .fp-back{transform:scaleX(1);transition-delay:.2s}
-#fp-svg .fp-card{transition:filter .2s}
-.free-chip,.class-item{transition:transform .15s ease,box-shadow .15s ease}
-.free-chip:hover,.class-item:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.12)}
 
 /* Substitute professor badge */
 .sub-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;margin-left:4px;white-space:nowrap;vertical-align:middle}
