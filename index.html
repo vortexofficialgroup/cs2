@@ -254,7 +254,7 @@
       <div id="cs-signup-form" style="display:none">
         <div class="cs-field"><label>Full name</label><input id="cs-name" type="text" placeholder="Your name" autocomplete="name"></div>
         <div class="cs-field"><label>University email</label><input id="cs-signup-email" type="email" placeholder="you@ue-germany.de" autocomplete="email"></div>
-        <div class="cs-field"><label>Program</label>
+        <div class="cs-field"><label>My course</label>
           <select id="cs-signup-program">
             <option value="">Select your program…</option>
             <option value="Bachelor">Bachelor</option>
@@ -326,7 +326,7 @@
     </div>
     <p class="cs-setup-lead" id="cs-setup-lead">Choose once so we can show you the right schedule. You will not be asked again.</p>
     <div class="cs-field" id="cs-setup-program-wrap">
-      <label>What do you study?</label>
+      <label>My course</label>
       <select id="cs-setup-program">
         <option value="">Select your program…</option>
         <option value="Bachelor">Bachelor</option>
@@ -372,15 +372,36 @@ function csProgramCat(p){
   if(s==='other')return 'other';
   return s;
 }
+function csProgramList(){
+  const seen=new Map();
+  SCHEDULE.forEach(e=>{const p=String(e.program||'').trim();if(p&&p.toLowerCase()!=='all programs'&&!seen.has(p.toLowerCase()))seen.set(p.toLowerCase(),p);});
+  return [...seen.values()].sort((a,b)=>a.localeCompare(b));
+}
+// Fill every course dropdown from the programs that exist in the schedule.
+function csFillProgramSelects(){
+  const list=csProgramList();
+  ['cs-signup-program','cs-account-program','cs-setup-program'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    const keep=sel.value||(id==='cs-account-program'&&csAccountUser?csAccountUser.program:'')||'';
+    const opts=['<option value="">Select your course…</option>'].concat(list.map(p=>`<option value="${escAttr(p)}">${esc(p)}</option>`));
+    opts.push('<option value="Other">Other / show everything</option>');
+    if(keep&&keep!=='Other'&&!list.some(p=>p.toLowerCase()===keep.toLowerCase()))opts.splice(1,0,`<option value="${escAttr(keep)}">${esc(keep)}</option>`);
+    sel.innerHTML=opts.join('');
+    sel.value=keep;
+  });
+}
 function csCanSeeEntry(e){
   if(!csStudent||csStudent.role!=='student')return true;
   const sp=String(csStudent.program||'').trim();
   if(!sp)return true;
   const ep=String(e.program||'').trim();
   if(!ep||ep.toLowerCase()==='all programs')return true;
-  const sc=csProgramCat(sp), ec=csProgramCat(ep);
+  const sc=csProgramCat(sp);
   if(sc==='other')return true;
-  return sc===ec;
+  // A specific course (e.g. "BA Computer Science & AI") matches exactly.
+  if(csProgramList().some(p=>p.toLowerCase()===sp.toLowerCase()))return ep.toLowerCase()===sp.toLowerCase();
+  // Older accounts saved a level (Bachelor / Master / MBA).
+  return sc===csProgramCat(ep);
 }
 function csSchedule(){
   const matched=SCHEDULE.filter(csCanSeeEntry);
@@ -1301,6 +1322,7 @@ async function csUnlock(name){
   gate.classList.remove('fade-out');
   gate.style.display='none';
   document.body.classList.remove('cs-locked');
+  csFillProgramSelects();
   csRenderAccount();
   csMaybeShowSetup();
   showToast(name?`Welcome, ${name}!`:'Welcome back!');
@@ -1442,6 +1464,7 @@ async function csBoot(){
     // Data loading and Microsoft config must never block the login screen.
     await Promise.race([csLoadMicrosoftConfig(),csWait(2500)]);
     await Promise.race([window.csDataReady||Promise.resolve(),csWait(seen?450:1200)]);
+    csFillProgramSelects();
     // Decide while the splash is still visible so there is never a blank screen.
     if(await csHandleMicrosoftReturn()){unlocked=true;return;}
     if(await csCheckSession()){
@@ -1543,6 +1566,8 @@ function csOpenAccount(){
   const isStudent=csAccountUser.role==='student';
   if(progWrap)progWrap.style.display=isStudent?'':'none';
   if(progSel)progSel.value=isStudent?(csAccountUser.program||''):'';
+  csFillProgramSelects();
+  if(progSel)progSel.value=isStudent?(csAccountUser.program||''):'';
   csAccountPhotoData=csAccountUser.photo||'';
   csSetPhotoPreview('cs-account-photo','cs-account-photo-icon',csAccountPhotoData);
   document.getElementById('cs-account-overlay').classList.add('open');
@@ -1608,13 +1633,18 @@ async function csSaveAccount(){
 }
 async function csLogout(){
   csCloseAccount();
-  if(csAccountUser&&csAccountUser.role==='student'){
-    await csClearStudentSession();
-  } else {
-    try{await csFetch('/api/admin/logout',{method:'POST'});}catch{}
-    csClearLegacyToken();csStudent=null;csAccountUser=null;
-  }
-  location.reload();
+  // Clear every possible sign-in (student + staff cookies, Microsoft session) so a
+  // leftover one can never sign the person straight back in after the reload.
+  csClearLegacyToken();
+  csStudent=null;csAccountUser=null;
+  await Promise.allSettled([
+    csFetch('/api/student/logout',{method:'DELETE'}),
+    csFetch('/api/admin/logout',{method:'POST'}),
+    csMsClient?csMsClient.auth.signOut():Promise.resolve(),
+  ]);
+  try{Object.keys(localStorage).filter(k=>/^sb-.*-auth-token/.test(k)).forEach(k=>localStorage.removeItem(k));}catch{}
+  sessionStorage.removeItem('csSeen');
+  location.replace(location.pathname);
 }
 ['cs-password','cs-signup-password','cs-staff-pass'].forEach(id=>{
   document.getElementById(id).addEventListener('keydown',event=>{
