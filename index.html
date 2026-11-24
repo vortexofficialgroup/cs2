@@ -1317,6 +1317,12 @@ async function csHideSplash(){
   splash.style.display='none';
 }
 async function csUnlock(name){
+  // Data is members-only, so (re)load it now that a session exists.
+  try{
+    await loadAll(true);
+    renderAnnouncements();renderDash();
+    if(curView==='schedule')renderSchedTable();
+  }catch(err){console.error('Could not load portal data after sign-in:',err);showToast(`Shared updates unavailable: ${err.message}`);}
   const gate=document.getElementById('cs-gate');
   if(gate.style.display==='flex')gate.classList.add('fade-out');
   await csHideSplash();

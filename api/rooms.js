@@ -1,9 +1,11 @@
 // api/rooms.js — GET /api/rooms
 const handler = require('../lib/http');
+const { requireSession } = require('../lib/auth');
 const store   = require('../lib/store');
 
 module.exports = handler({
   GET(req, res) {
+    if (!requireSession(req, res)) return;
     const rooms = store.getRooms();
     // Attach current status based on server time
     const now  = new Date();

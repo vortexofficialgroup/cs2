@@ -261,6 +261,9 @@ async function saveAll(section){
 async function loadAll(force){
   const query=!force&&_sharedUpdatedAt?`?since=${encodeURIComponent(_sharedUpdatedAt)}`:'';
   const response=await fetch(`/api/state${query}`,{credentials:'same-origin'});
+  // Campus data is members-only: before sign-in the server answers 401, which is
+  // expected (data is loaded again right after login), so don't treat it as an error.
+  if(response.status===401)return {found:false,legacy:false,notModified:true,unauthorized:true,updatedAt:_sharedUpdatedAt};
   const result=await response.json();
   if(!response.ok)throw new Error(result.error||`Could not load shared data (${response.status})`);
   if(result.notModified)return {found:true,legacy:false,notModified:true,updatedAt:_sharedUpdatedAt};

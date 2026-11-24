@@ -1,6 +1,6 @@
 // api/state.js — GET / PUT shared portal state
 const handler = require('../lib/http');
-const { requireAdmin, requirePermission, getUser } = require('../lib/auth');
+const { requireAdmin, requirePermission, getUser, requireSession } = require('../lib/auth');
 
 const SECTIONS = {
   rooms: { keys: ['rm', 'ro', 'rp', 'rooms'], permission: 'rooms' },
@@ -51,6 +51,9 @@ async function supabaseRequest(config, path, options) {
 
 module.exports = handler({
   async GET(req, res) {
+    // Campus data is for signed-in members only (student, staff or admin).
+    const session = requireSession(req, res);
+    if (!session) return;
     const config = storageConfig(res);
     if (!config) return;
     const query = new URLSearchParams({ id: 'eq.main', select: 'data,updated_at' });
@@ -65,10 +68,13 @@ module.exports = handler({
     const updatedAt = rows.length ? rows[0].updated_at : null;
 
     // Public portal only needs operational data. Admin settings stay admin-only.
-    const user = getUser(req, null, { silent: true });
-    if (user && user.role === 'admin') return res.json({ state, updatedAt });
+    if (session.role === 'admin') return res.json({ state, updatedAt });
     const publicState = state && typeof state === 'object' ? { ...state } : null;
     if (publicState && Object.prototype.hasOwnProperty.call(publicState, 'ps')) delete publicState.ps;
+    // Students only need professor names/departments, never personal contact details.
+    if (publicState && session.role === 'student' && Array.isArray(publicState.pr)) {
+      publicState.pr = publicState.pr.map(p => ({ id: p.id, name: p.name, dept: p.dept }));
+    }
     return res.json({ state: publicState, updatedAt });
   },
 
