@@ -363,8 +363,6 @@ function updateClock(){
   if(ds){const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];const months=['January','February','March','April','May','June','July','August','September','October','November','December'];ds.textContent=`${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;}
 }
 
-function effProf(s){return activeOverride(s)||s.professor;}
-function effProfHtml(s){const o=activeOverride(s);return o?`<span style="color:#2563EB;font-weight:600">${esc(o)}</span> <span style="font-size:10px;color:var(--txt-muted)">(sub)</span>`:esc(s.professor);}
 function csProgramCat(p){
   const s=String(p||'').toLowerCase().trim();
   if(!s)return '';
