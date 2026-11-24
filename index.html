@@ -583,70 +583,6 @@ function renderFP(){
       }
     }
     svg+=`</g>`; // end front
-    // ── back of the card (shown when flipped) ──
-    {
-      const bl={occ:['In Session','#F87171'],soon:['Starting Soon','#FCD34D'],free:['Free Now','#4ADE80'],empty:['Free Now','#4ADE80'],staff:['Staff only','#F87171'],public:['Open to everyone','#7DD3FC'],maintenance:['Maintenance','#9CA3AF'],event:['Event Running','#FBBF24'],booked:['Booked for Event','#C4B5FD']}[st.status]||['',''];
-      // Fit text inside the card: wrap on words at the given size, shrink slightly if a single word is too wide, ellipsis only as a last resort
-      const maxW=rw-12;
-      const cw=(fz,fw)=>fz*(+fw>=700?0.62:0.57);
-      const fitLines=(t,fz,fw,maxLines=2)=>{
-        t=String(t||'');
-        for(let f=fz;f>=Math.max(6.5,fz*0.75);f-=0.5){
-          const mc=Math.max(1,Math.floor(maxW/cw(f,fw)));
-          const out=[];let cur='';
-          for(const w of t.split(/\s+/)){
-            const nx=cur?cur+' '+w:w;
-            if(nx.length<=mc) cur=nx; else { if(cur) out.push(cur); cur=w; }
-          }
-          if(cur) out.push(cur);
-          if(out.length<=maxLines && out.every(l=>l.length<=mc)) return {lines:out,fz:f};
-        }
-        const f=Math.max(6.5,fz*0.75),mc=Math.max(4,Math.floor(maxW/cw(f,fw)));
-        return {lines:[t.length>mc?t.slice(0,mc-1)+'…':t],fz:f};
-      };
-      const cut=t=>fitLines(t,12,'800',1).lines[0];
-      const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-      const lines=[[room.name,12,'800','#fff'],[bl[0],10.5,'700',bl[1]]];
-      if((st.status==='occ'||st.status==='soon')&&st.entry){
-        lines.push([st.entry.code+' · '+st.entry.course,9.5,'600','#E5E7EB'],[effProf(st.entry),9,'400','#F3F4F6'],
-          [st.status==='occ'?`Ends in ${fmtDur(t2m(st.entry.end)-min)}`:`Starts ${fmtT(st.entry.start)} (in ${fmtDur(t2m(st.entry.start)-min)})`,9,'400','#E5E7EB']);
-      } else if(st.status==='free'||st.status==='empty'){
-        const nx=SCHEDULE.filter(q=>q.roomId===id&&q.day===today&&t2m(q.start)>min).sort((a,b)=>t2m(a.start)-t2m(b.start))[0];
-        lines.push([nx?`Next: ${fmtT(nx.start)} · ${nx.code}`:'No more classes today',9.5,'400','#F3F4F6']);
-      }
-      if(room.capacity>0) lines.push([`${room.capacity} chairs`,9,'400','#E5E7EB']);
-      lines.push(['Click for details',8.5,'700','#FCA5A5']);
-      svg+=`<g class="fp-back" style="${orig}"><rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4" fill="#1F2937" stroke="${c.stroke}" stroke-width="2"/>`;
-      const photo=(ROOM_PHOTOS&&ROOM_PHOTOS[id]||[])[0];
-      if(photo){
-        const cid='fpc-'+String(id).replace(/[^A-Za-z0-9]/g,'');
-        const bh=Math.min(rh*0.45,rh<70?32:54),by=ry+rh-bh,gid='fpg-'+cid;
-        svg+=`<clipPath id="${cid}"><rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4"/></clipPath>`;
-        svg+=`<linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".92"/></linearGradient>`;
-        svg+=`<image href="${photo}" x="${rx}" y="${ry}" width="${rw}" height="${rh}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${cid})"/>`;
-        svg+=`<rect x="${rx}" y="${by-bh*0.3}" width="${rw}" height="${bh*1.3}" fill="url(#${gid})" clip-path="url(#${cid})"/>`;
-        svg+=`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4" fill="none" stroke="#C8102E" stroke-width="2.5"/>`;
-        const nm=fitLines(room.name,bh>40?13:10.5,'800',2);
-        const nmY=by+(bh>40?20:14);
-        nm.lines.forEach((l,i)=>{svg+=`<text x="${midX}" y="${nmY+i*(nm.fz+2)}" text-anchor="middle" font-size="${nm.fz}" font-weight="800" fill="#9B0D22" ${F}>${esc(l)}</text>`;});
-        const stF=fitLines(bl[0],bh>40?10.5:9,'700',1);
-        svg+=`<text x="${midX}" y="${nmY+nm.lines.length*(nm.fz+2)+2}" text-anchor="middle" font-size="${stF.fz}" font-weight="700" fill="#7F1D1D" ${F}>${esc(stF.lines[0])}</text>`;
-        svg+=`</g>`;
-        svg+=`<rect class="fp-hit" x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4" fill="rgba(0,0,0,0)" onclick="openRoom('${escAttr(id)}')"/></g>`;
-        return;
-      }
-      let ty=ry+(rh<70?15:22);
-      lines.forEach(([t,fz,fw,col])=>{
-        const f=fitLines(t,fz,fw,2);
-        f.lines.forEach(l=>{
-          if(ty>y+h-6) return;
-          svg+=`<text x="${midX}" y="${ty}" text-anchor="middle" font-size="${f.fz}" font-weight="${fw}" fill="${col}" ${F}>${esc(l)}</text>`;
-          ty+=f.fz+(rh<70?3:4);
-        });
-        ty+=rh<70?2:3;
-      });
-      svg+=`</g>`;
-    }
     svg+=`<rect class="fp-hit" x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4" fill="rgba(0,0,0,0)" onclick="openRoom('${escAttr(id)}')"/></g>`;
   });
 
@@ -745,6 +681,7 @@ function openRoom(id){
   _rpId=null;renderRoomPhotos(id);
   const {min}=getNow(),today=getToday();
   const st=roomStatus(id,today,min);
+  const sched=SCHEDULE;
   document.getElementById('m-rid').textContent=`ROOM ${room.id}`;
   document.getElementById('m-rname').textContent=room.name;
   const feats=(room.features||[]).map(f=>`<span class="m-badge"><i class="fa-solid fa-check" style="font-size:9px;color:var(--green)"></i>${esc(f)}</span>`).join('');
