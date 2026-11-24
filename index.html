@@ -1251,6 +1251,8 @@ async function cbSend() {
         _context: {
           currentDay,
           currentTime,
+          program: csStudent&&csStudent.program?csStudent.program:'',
+          studentName: csStudent&&csStudent.name?csStudent.name:'',
           schedule: scheduleCtx,
           rooms: roomCtx,
         }
@@ -1354,36 +1356,25 @@ async function csUnlock(name){
   csMaybeShowSetup();
   showToast(name?`Welcome, ${name}!`:'Welcome back!');
 }
-// The study/teaching choice is collected once when the account is created.
-// Older accounts (or accounts created without it) get a single prompt after
-// sign-in; after saving, setupComplete / program keeps them from seeing it again.
+// Students pick their program in the Create account form, so they are never
+// prompted again after signing in. Only staff accounts that were created
+// without a teaching choice (e.g. first-time Microsoft accounts) are asked once.
 function csNeedsSetup(){
   const user=csAccountUser;
-  if(!user)return false;
-  if(user.role==='student')return !String(user.program||'').trim();
-  if(user.role==='staff')return !user.setupComplete;
-  return false;
+  if(!user||user.role!=='staff')return false;
+  return !user.setupComplete;
 }
 function csMaybeShowSetup(){
   const overlay=document.getElementById('cs-setup-overlay');
   if(!overlay||!csNeedsSetup())return;
   csClearErrors();
-  const student=csAccountUser.role==='student';
-  document.getElementById('cs-setup-title').innerHTML=student
-    ?'<i class="fa-solid fa-graduation-cap"></i> What do you study?'
-    :'<i class="fa-solid fa-chalkboard-user"></i> What do you teach?';
-  document.getElementById('cs-setup-lead').textContent=student
-    ?'Choose your program once so we can show the classes for your studies. You will not be asked again.'
-    :'Choose the professor whose classes you teach, or None. This is asked only once, and you will still see the full schedule.';
-  document.getElementById('cs-setup-program-wrap').style.display=student?'':'none';
-  document.getElementById('cs-setup-prof-wrap').style.display=student?'none':'';
-  if(student){
-    document.getElementById('cs-setup-program').value=csAccountUser.program||'';
-  }else{
-    const select=document.getElementById('cs-setup-professor');
-    select.innerHTML='<option value="">— None —</option>'+(PROFESSORS||[]).map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('');
-    select.value=csAccountUser.linkedProfessor||'';
-  }
+  document.getElementById('cs-setup-title').innerHTML='<i class="fa-solid fa-chalkboard-user"></i> What do you teach?';
+  document.getElementById('cs-setup-lead').textContent='Choose the professor whose classes you teach, or None. This is asked only once, and you will still see the full schedule.';
+  document.getElementById('cs-setup-program-wrap').style.display='none';
+  document.getElementById('cs-setup-prof-wrap').style.display='';
+  const select=document.getElementById('cs-setup-professor');
+  select.innerHTML='<option value="">— None —</option>'+(PROFESSORS||[]).map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('');
+  select.value=csAccountUser.linkedProfessor||'';
   overlay.classList.add('open');
 }
 async function csSaveSetup(){

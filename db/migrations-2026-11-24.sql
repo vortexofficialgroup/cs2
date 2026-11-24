@@ -4,6 +4,12 @@
 
 ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS setup_complete BOOLEAN NOT NULL DEFAULT FALSE;
 
+-- Older databases were created with fix-student-users.sql, which predates
+-- these columns. Without them a student's program is silently dropped.
+ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS program TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS photo TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.student_users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT '';
+
 CREATE TABLE IF NOT EXISTS public.change_log (
   id         TEXT PRIMARY KEY,
   at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
