@@ -5,6 +5,7 @@ const routes = {
   microsoft: () => require('../../lib/routes/auth/microsoft'),
   session: () => require('../../lib/routes/auth/session'),
   account: () => require('../../lib/routes/auth/account'),
+  setup:   () => require('../../lib/routes/auth/setup'),
 };
 
 module.exports = function (req, res) {

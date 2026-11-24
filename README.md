@@ -109,7 +109,9 @@ to trigger a Vercel deployment; deployment status is available in the Vercel
 project dashboard.
 
 For shared admin state, run [`db/supabase-shared-state.sql`](db/supabase-shared-state.sql)
-in your Supabase project's SQL Editor. Add `SUPABASE_URL` and
+in your Supabase project's SQL Editor. If your database was set up with an older
+script, run [`db/migrations-2026-11-24.sql`](db/migrations-2026-11-24.sql) once to
+add the staff setup flag and the staff change log. Add `SUPABASE_URL` and
 `SUPABASE_SERVICE_ROLE_KEY` to the Vercel project's Production environment
 variables, then redeploy. Keep the service-role key server-only.
 

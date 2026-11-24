@@ -33,12 +33,15 @@ CREATE TABLE IF NOT EXISTS public.sso_staff (
   ai_actions TEXT[] NOT NULL DEFAULT '{}',
   photo TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT '',
+  linked_professor TEXT NOT NULL DEFAULT '',
+  setup_complete BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS photo TEXT NOT NULL DEFAULT '';
 ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT '';
 ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS linked_professor TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.sso_staff ADD COLUMN IF NOT EXISTS setup_complete BOOLEAN NOT NULL DEFAULT FALSE;
 
 ALTER TABLE public.sso_staff ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.sso_staff FROM PUBLIC, anon, authenticated;
@@ -80,3 +83,23 @@ CREATE TABLE IF NOT EXISTS public.access_log (
 ALTER TABLE public.access_log ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.access_log FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT ON TABLE public.access_log TO service_role;
+
+-- Every successful change made through the staff AI assistant, for admin review.
+CREATE TABLE IF NOT EXISTS public.change_log (
+  id         TEXT PRIMARY KEY,
+  at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  actor_type TEXT NOT NULL DEFAULT 'staff',
+  actor      TEXT NOT NULL DEFAULT '',
+  email      TEXT NOT NULL DEFAULT '',
+  action     TEXT NOT NULL DEFAULT '',
+  target     TEXT NOT NULL DEFAULT '',
+  detail     TEXT NOT NULL DEFAULT '',
+  ok         BOOLEAN NOT NULL DEFAULT FALSE,
+  ip         TEXT NOT NULL DEFAULT ''
+);
+
+CREATE INDEX IF NOT EXISTS idx_change_log_at ON public.change_log(at DESC);
+
+ALTER TABLE public.change_log ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.change_log FROM PUBLIC, anon, authenticated;
+GRANT SELECT, INSERT ON TABLE public.change_log TO service_role;

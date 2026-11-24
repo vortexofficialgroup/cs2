@@ -424,8 +424,8 @@ input,select,textarea{font-family:inherit}
 .cs-pane{display:none;text-align:left}.cs-pane.active{display:block}
 .cs-field{margin-bottom:12px}
 .cs-field label{display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
-.cs-field input{width:100%;border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:11px 12px;font-size:13px;font-family:inherit;outline:none;transition:.2s;box-sizing:border-box}
-.cs-field input:focus{border-color:#C8102E;box-shadow:0 0 0 3px rgba(200,16,46,.12)}
+.cs-field input,.cs-field select{width:100%;border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:11px 12px;font-size:13px;font-family:inherit;outline:none;transition:.2s;box-sizing:border-box;background:var(--bg-card,var(--bg-soft,#fff));color:var(--txt-base,#374151)}
+.cs-field input:focus,.cs-field select:focus{border-color:#C8102E;box-shadow:0 0 0 3px rgba(200,16,46,.12)}
 .cs-submit{width:100%;border:none;border-radius:10px;background:linear-gradient(135deg,#C8102E,#9B0D22);color:#fff;font-size:13px;font-weight:700;padding:12px;cursor:pointer;transition:.2s;margin-top:4px}
 .cs-submit:hover{filter:brightness(1.07)}.cs-submit:disabled{opacity:.6;cursor:wait}
 .cs-switch{margin-top:14px;text-align:center;font-size:11.5px;color:#6b7280}
@@ -449,6 +449,8 @@ body.cs-locked > .cs-splash,body.cs-locked > .cs-gate,body.cs-locked > .cs-sprit
 .cs-account-overlay{position:fixed;inset:0;z-index:10001;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(8,10,16,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .cs-account-overlay.open{display:flex}
 .cs-account-card{width:min(360px,100%);background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
+.cs-setup-lead{font-size:12.5px;line-height:1.55;color:var(--txt-muted,#6b7280);margin:0 0 16px}
+.cs-setup-hint{font-size:11px;line-height:1.45;color:var(--txt-muted,#6b7280);margin-top:6px}
 .cs-account-hdr{display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:800;color:var(--txt-base);margin-bottom:16px}
 .cs-account-hdr button{border:none;background:none;color:var(--txt-muted,#6b7280);font-size:18px;cursor:pointer}
 .cs-account-photo-box{display:flex;align-items:center;gap:12px;margin-bottom:16px}

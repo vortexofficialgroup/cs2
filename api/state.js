@@ -1,6 +1,8 @@
 // api/state.js — GET / PUT shared portal state
 const handler = require('../lib/http');
 const { requireAdmin, requirePermission, getUser } = require('../lib/auth');
+const changeLog = require('../lib/change-log');
+const rateLimit = require('../lib/rate-limit');
 
 const SECTIONS = {
   rooms: { keys: ['rm', 'ro', 'rp', 'rooms'], permission: 'rooms' },
@@ -19,6 +21,16 @@ function isValidValue(key, value) {
   if (key === 'ni') return Number.isInteger(value) && value >= 0;
   if (['rm', 'ro', 'rp', 'ps'].includes(key)) return isObject(value);
   return Array.isArray(value);
+}
+
+function summarize(body) {
+  const out = {};
+  for (const [key, value] of Object.entries(body || {})) {
+    if (Array.isArray(value))
+      out[key] = { count: value.length, ids: value.slice(0, 20).map(item => item && (item.id ?? item.code ?? item.name ?? '')) };
+    else out[key] = Object.keys(value || {});
+  }
+  return out;
 }
 
 function storageConfig(res) {
@@ -94,6 +106,25 @@ module.exports = handler({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_patch: patch }),
     });
+
+    // Staff edits made in the admin tabs are recorded for the administrator.
+    const user = getUser(req, null, { silent: true });
+    if (user && user.role === 'staff') {
+      try {
+        await changeLog.append({
+          actorType: 'staff',
+          actor: user.displayName || user.username || '',
+          email: user.email || user.username || '',
+          action: 'edit_' + String(req.query.section || 'state'),
+          target: String(req.query.section || ''),
+          detail: JSON.stringify(summarize(body)),
+          ok: true,
+          ip: rateLimit.ip(req),
+        });
+      } catch (err) {
+        console.error('[staff change log]', err);
+      }
+    }
     res.json({ saved: true });
   },
 });

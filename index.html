@@ -318,7 +318,34 @@
   </div>
 </div>
 
-<script src="data.js?v=20261123-login"></script>
+<!-- ═══ ONE-TIME SETUP (asked once after the account is created) ═══ -->
+<div class="cs-account-overlay" id="cs-setup-overlay">
+  <div class="cs-account-card">
+    <div class="cs-account-hdr">
+      <span id="cs-setup-title"><i class="fa-solid fa-graduation-cap"></i> One-time setup</span>
+    </div>
+    <p class="cs-setup-lead" id="cs-setup-lead">Choose once so we can show you the right schedule. You will not be asked again.</p>
+    <div class="cs-field" id="cs-setup-program-wrap">
+      <label>What do you study?</label>
+      <select id="cs-setup-program">
+        <option value="">Select your program…</option>
+        <option value="Bachelor">Bachelor</option>
+        <option value="Master">Master</option>
+        <option value="MBA">MBA</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="cs-field" id="cs-setup-prof-wrap">
+      <label>What do you teach?</label>
+      <select id="cs-setup-professor"><option value="">— None —</option></select>
+      <div class="cs-setup-hint">Pick None if you do not teach a course. You will still see the full schedule, and any changes you make are recorded.</div>
+    </div>
+    <div class="cs-error" id="cs-setup-error"></div>
+    <button class="cs-submit" id="cs-setup-save" onclick="csSaveSetup()"><i class="fa-solid fa-check"></i> Save &amp; continue</button>
+  </div>
+</div>
+
+<script src="data.js?v=20261124-setup"></script>
 <script>
 // ══════════════════════════════════════════════════
 // STATE
@@ -1295,7 +1322,7 @@ function csError(id,message){
   box.textContent=message;box.style.display='block';
 }
 function csClearErrors(){
-  ['cs-student-error','cs-staff-error','cs-account-error'].forEach(id=>{const box=document.getElementById(id);if(box){box.style.display='none';box.textContent='';}});
+  ['cs-student-error','cs-staff-error','cs-account-error','cs-setup-error'].forEach(id=>{const box=document.getElementById(id);if(box){box.style.display='none';box.textContent='';}});
 }
 function csSetTab(tab){
   document.getElementById('cs-tab-student').classList.toggle('active',tab==='student');
@@ -1324,7 +1351,65 @@ async function csUnlock(name){
   gate.style.display='none';
   document.body.classList.remove('cs-locked');
   csRenderAccount();
+  csMaybeShowSetup();
   showToast(name?`Welcome, ${name}!`:'Welcome back!');
+}
+// The study/teaching choice is collected once when the account is created.
+// Older accounts (or accounts created without it) get a single prompt after
+// sign-in; after saving, setupComplete / program keeps them from seeing it again.
+function csNeedsSetup(){
+  const user=csAccountUser;
+  if(!user)return false;
+  if(user.role==='student')return !String(user.program||'').trim();
+  if(user.role==='staff')return !user.setupComplete;
+  return false;
+}
+function csMaybeShowSetup(){
+  const overlay=document.getElementById('cs-setup-overlay');
+  if(!overlay||!csNeedsSetup())return;
+  csClearErrors();
+  const student=csAccountUser.role==='student';
+  document.getElementById('cs-setup-title').innerHTML=student
+    ?'<i class="fa-solid fa-graduation-cap"></i> What do you study?'
+    :'<i class="fa-solid fa-chalkboard-user"></i> What do you teach?';
+  document.getElementById('cs-setup-lead').textContent=student
+    ?'Choose your program once so we can show the classes for your studies. You will not be asked again.'
+    :'Choose the professor whose classes you teach, or None. This is asked only once, and you will still see the full schedule.';
+  document.getElementById('cs-setup-program-wrap').style.display=student?'':'none';
+  document.getElementById('cs-setup-prof-wrap').style.display=student?'none':'';
+  if(student){
+    document.getElementById('cs-setup-program').value=csAccountUser.program||'';
+  }else{
+    const select=document.getElementById('cs-setup-professor');
+    select.innerHTML='<option value="">— None —</option>'+(PROFESSORS||[]).map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('');
+    select.value=csAccountUser.linkedProfessor||'';
+  }
+  overlay.classList.add('open');
+}
+async function csSaveSetup(){
+  csClearErrors();
+  const btn=document.getElementById('cs-setup-save');btn.disabled=true;
+  const student=csAccountUser.role==='student';
+  try{
+    if(student){
+      const program=document.getElementById('cs-setup-program').value;
+      if(!program)throw new Error('Select your program.');
+      const data=await csFetch('/api/student/account',{method:'PUT',body:JSON.stringify({
+        name:csAccountName(),program,status:csAccountUser.status||'',photo:csAccountUser.photo||'',
+      })});
+      csClearLegacyToken();
+      csStudent=data.user;csAccountUser=data.user;
+    }else{
+      const linkedProfessor=document.getElementById('cs-setup-professor').value;
+      const data=await csFetch('/api/auth/setup',{method:'PUT',body:JSON.stringify({linkedProfessor})});
+      csAccountUser=data.user;
+    }
+    document.getElementById('cs-setup-overlay').classList.remove('open');
+    csRenderAccount();
+    showToast('Setup saved ✓');
+    if(student){renderDashboard();if(curView==='schedule')renderSchedTable();}
+  }catch(err){csError('cs-setup-error',err.message);}
+  finally{btn.disabled=false;}
 }
 async function csCheckSession(){
   csClearLegacyToken();

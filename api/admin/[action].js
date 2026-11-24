@@ -10,6 +10,7 @@ const routes = {
   staff:         () => require('../../lib/routes/admin/staff'),
   'sso-staff':   () => require('../../lib/routes/admin/sso-staff'),
   'access-log':  () => require('../../lib/routes/admin/access-log'),
+  'change-log':  () => require('../../lib/routes/admin/change-log'),
   rooms:         () => require('../../lib/routes/admin/rooms'),
   professors:    () => require('../../lib/routes/admin/professors'),
   schedule:      () => require('../../lib/routes/admin/schedule'),
