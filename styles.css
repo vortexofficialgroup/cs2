@@ -370,9 +370,11 @@ input,select,textarea{font-family:inherit}
 /* Floor plan: room cards flip on hover */
 #fp-svg text,#fp-svg circle,#fp-svg .fp-room,#fp-svg .fp-back rect,#fp-svg .fp-front rect:not(.fp-room){pointer-events:none}
 #fp-svg .fp-hit{pointer-events:all;cursor:pointer}
-#fp-svg .fp-front,#fp-svg .fp-back{transition:transform .2s ease-in-out}
+#fp-svg .fp-front,#fp-svg .fp-back{transition:transform .2s ease-in-out;transform-origin:center;transform-box:fill-box}
 #fp-svg .fp-front{transition-delay:.2s}
 #fp-svg .fp-back{transform:scaleX(0)}
+#fp-svg .fp-card:hover .fp-front{transform:scaleX(0);transition-delay:0s}
+#fp-svg .fp-card:hover .fp-back{transform:scaleX(1);transition-delay:.2s}
 #fp-svg .fp-card{transition:filter .2s}
 .free-chip,.class-item{transition:transform .15s ease,box-shadow .15s ease}
 .free-chip:hover,.class-item:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.12)}

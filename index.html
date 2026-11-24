@@ -472,10 +472,17 @@ function findFree(){
 // ══════════════════════════════════════════════════
 function renderFP(){
   const {min}=getNow(),today=getToday();
-  const plan=FLOOR_LAYOUTS[1];
+  const plan=(typeof FLOOR_LAYOUTS!=='undefined'&&FLOOR_LAYOUTS)?(FLOOR_LAYOUTS[1]||Object.values(FLOOR_LAYOUTS)[0]):null;
   const fpSvg=document.getElementById('fp-svg');
-  if(!plan||!fpSvg)return;
-  document.getElementById('fp-floor-label').textContent=plan.label;
+  const label=document.getElementById('fp-floor-label');
+  if(!fpSvg)return;
+  if(!plan||!Array.isArray(plan.rooms)||!plan.rooms.length){
+    if(label)label.textContent='Floor plan unavailable';
+    fpSvg.innerHTML='<text x="20" y="40" fill="#6B7280" font-size="16" font-family="Inter,sans-serif">Floor plan data is unavailable. Please refresh.</text>';
+    fpSvg.setAttribute('viewBox','0 0 600 80');
+    return;
+  }
+  if(label)label.textContent=plan.label||'Floor Plan';
 
   const statusC={
     occ:  {fill:'#FEE2E2',stroke:'#EF4444',sw:1.5},
@@ -659,7 +666,10 @@ function renderFP(){
   });
 
   fpSvg.setAttribute('viewBox',`0 0 ${plan.w} ${plan.h}`);
-  fpSvg.setAttribute('style','width:100%;height:auto;max-width:100%;display:block;margin:0 auto');
+  fpSvg.setAttribute('width','100%');
+  fpSvg.setAttribute('height','auto');
+  fpSvg.setAttribute('preserveAspectRatio','xMidYMid meet');
+  fpSvg.style.cssText='width:100%;height:auto;max-width:100%;display:block;margin:0 auto;min-height:220px;background:#fff';
   fpSvg.innerHTML=svg;
 }
 
