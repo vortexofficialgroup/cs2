@@ -77,10 +77,15 @@ module.exports = handler({
     const updatedAt = rows.length ? rows[0].updated_at : null;
 
     // Public portal only needs operational data. Admin settings stay admin-only.
-    const user = getUser(req, null, { silent: true });
+    const user = await getUser(req, null, { silent: true });
     if (user && user.role === 'admin') return res.json({ state, updatedAt });
     const publicState = state && typeof state === 'object' ? { ...state } : null;
-    if (publicState && Object.prototype.hasOwnProperty.call(publicState, 'ps')) delete publicState.ps;
+    if (publicState) {
+      // Private settings and staff password hashes must never be public.
+      delete publicState.ps;
+      delete publicState.staffUsers;
+      delete publicState.adminPassword;
+    }
     return res.json({ state: publicState, updatedAt });
   },
 
@@ -90,7 +95,7 @@ module.exports = handler({
 
     const section = SECTIONS[req.query.section];
     if (!section) return res.status(400).json({ error: 'A valid state section is required.' });
-    if (section.adminOnly ? !requireAdmin(req, res) : !requirePermission(req, res, section.permission)) return;
+    if (section.adminOnly ? !await requireAdmin(req, res) : !await requirePermission(req, res, section.permission)) return;
 
     const body = isObject(req.body) ? req.body : {};
     const patch = {};
@@ -108,7 +113,7 @@ module.exports = handler({
     });
 
     // Staff edits made in the admin tabs are recorded for the administrator.
-    const user = getUser(req, null, { silent: true });
+    const user = await getUser(req, null, { silent: true });
     if (user && user.role === 'staff') {
       try {
         await changeLog.append({
