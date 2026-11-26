@@ -1886,7 +1886,7 @@ function agentRemoveTyping() {
 const AI_RETRY_SECONDS = 10;
 
 function aiCountdownMessage(seconds) {
-  return `The AI assistant can't respond right now. Please try again in ${seconds} second${seconds === 1 ? '' : 's'}.`;
+  return `Please wait ${seconds} second${seconds === 1 ? '' : 's'} before trying again.`;
 }
 
 function aiChatCountdown(append) {

@@ -1169,7 +1169,7 @@ function cbAppend(role, text) {
 const CB_RETRY_SECONDS = 10;
 
 function cbBusyMessage(seconds) {
-  return `The AI assistant can't respond right now. Please try again in ${seconds} second${seconds === 1 ? '' : 's'}.`;
+  return `Please wait ${seconds} second${seconds === 1 ? '' : 's'} before trying again.`;
 }
 
 // Keep provider errors hidden from students: show a friendly 10-second
